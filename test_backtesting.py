@@ -10,15 +10,15 @@ from datetime import datetime, timedelta
 def main():
     print("🔍 AI Day Trading Bot - Backtesting Test")
     print("=" * 50)
-    
+
     try:
         # Import components
         from src.data_sources.data_manager import DataManager
         from src.backtesting.strategy_backtester import SignalBasedBacktester
-        
+
         print("\n📡 Initializing components...")
         dm = DataManager()
-        
+
         # Configure backtester
         backtester = SignalBasedBacktester(
             initial_capital=100000,  # $100k starting capital
@@ -28,13 +28,13 @@ def main():
             stop_loss_pct=0.03,      # 3% stop loss
             take_profit_pct=0.08     # 8% take profit
         )
-        
+
         print("✅ Components initialized successfully")
-        
+
         # Fetch test data
         test_symbols = ["AAPL", "MSFT", "GOOGL"]
         print(f"\n📊 Fetching data for {test_symbols}...")
-        
+
         data = {}
         for symbol in test_symbols:
             symbol_data = dm.get_historical_data(symbol, period="3mo")
@@ -43,24 +43,24 @@ def main():
                 print(f"   ✅ {symbol}: {len(symbol_data)} data points")
             else:
                 print(f"   ❌ Failed to fetch data for {symbol}")
-        
+
         if not data:
             print("❌ No data available for backtesting")
             return
-        
+
         # Run backtest
         print(f"\n🚀 Running backtest on {len(data)} symbols...")
-        
+
         # For now, let's just use all available data
         print(f"   Using all available data ({len(data)} symbols)")
-        
+
         # Run the backtest
         results = backtester.run_backtest(data=data)
-            
+
             # Display results
             print("\n📈 Backtest completed!")
             results.print_summary()
-            
+
             # Show strategy configuration
             strategy_config = backtester.get_strategy_summary()
             print(f"\n⚙️ Strategy Configuration:")
@@ -72,7 +72,7 @@ def main():
                         print(f"   {key}: {value:.2f}")
                 else:
                     print(f"   {key}: {value}")
-            
+
             # Show some individual trades
             closed_trades = [t for t in results.trades if t.status == "CLOSED"]
             if closed_trades:
@@ -81,16 +81,16 @@ def main():
                     pnl_str = f"${trade.pnl:+,.2f}" if trade.pnl != 0 else "$0.00"
                     duration = trade.duration
                     duration_str = f"{duration.days}d" if duration else "N/A"
-                    
+
                     print(f"   {i+1}. {trade.symbol}: {trade.trade_type} {trade.quantity} shares")
                     print(f"      Entry: ${trade.entry_price:.2f} -> Exit: ${trade.exit_price:.2f}")
                     print(f"      PnL: {pnl_str} | Duration: {duration_str}")
-        
+
         else:
             print("❌ No valid dates found for backtesting")
-        
+
         print("\n🎉 Backtesting test completed successfully!")
-        
+
     except Exception as e:
         print(f"❌ Error during backtesting test: {e}")
         import traceback
