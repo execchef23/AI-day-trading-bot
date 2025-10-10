@@ -27,7 +27,7 @@ Your repository is already prepared with:
    - Repository: `execchef23/AI-day-trading-bot`
    - Branch: `main`
    - Main file path: `app.py`
-   - Requirements file: `requirements_streamlit.txt`
+   - **Note**: Requirements automatically detected from `requirements.txt`
 
 ### Step 3: Advanced Settings (Optional)
 
