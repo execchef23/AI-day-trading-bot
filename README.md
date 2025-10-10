@@ -47,7 +47,7 @@ A **complete, enterprise-grade AI trading system** featuring machine learning si
 ### ⚠️ **Advanced Risk Management** ✨
 
 - **Position Sizing**: Volatility-based, Kelly Criterion, Risk Parity algorithms
-- **Portfolio Protection**: Stop-loss, take-profit, correlation monitoring  
+- **Portfolio Protection**: Stop-loss, take-profit, correlation monitoring
 - **Real-time Risk Assessment**: Concentration limits, drawdown protection
 - **Smart Trade Validation**: Pre-trade risk checks and warnings
 
