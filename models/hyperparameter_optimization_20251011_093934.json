@@ -1,0 +1,37 @@
+{
+  "xgboost": {
+    "best_params": {
+      "max_depth": 5,
+      "learning_rate": 0.28570714885887566,
+      "n_estimators": 759,
+      "subsample": 0.8394633936788146,
+      "colsample_bytree": 0.6624074561769746,
+      "reg_alpha": 1.5599452033620265,
+      "reg_lambda": 0.5808361216819946
+    },
+    "best_value": 0.020615548025324604,
+    "n_trials": 20,
+    "optimization_time": 3.7867890000000006
+  },
+  "lightgbm": {
+    "best_params": {
+      "num_leaves": 44,
+      "learning_rate": 0.28570714885887566,
+      "n_estimators": 759,
+      "feature_fraction": 0.8394633936788146,
+      "bagging_fraction": 0.6624074561769746,
+      "bagging_freq": 1,
+      "min_child_samples": 10,
+      "reg_alpha": 8.661761457749352,
+      "reg_lambda": 6.011150117432088
+    },
+    "best_value": 0.020482260072223486,
+    "n_trials": 20,
+    "optimization_time": 0.875585
+  },
+  "metadata": {
+    "timestamp": "2025-10-11T09:39:34.980096",
+    "n_trials_per_model": 20,
+    "timeout_seconds": 300
+  }
+}

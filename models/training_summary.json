@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-10-11T09:39:35.110849",
+  "models_trained": 2,
+  "results": {
+    "xgb_optimized": {
+      "train_rmse": 0.025507473926693006,
+      "val_rmse": 0.02071153978062507,
+      "train_direction_accuracy": 0.44642857142857145,
+      "val_direction_accuracy": 0.5,
+      "training_time": 0.100795
+    },
+    "lgb_optimized": {
+      "train_rmse": 0.025507473926693006,
+      "val_rmse": 0.020711539781347856,
+      "train_direction_accuracy": 0.44642857142857145,
+      "val_direction_accuracy": 0.5,
+      "training_time": 0.026449
+    }
+  }
+}
