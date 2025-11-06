@@ -2215,7 +2215,8 @@ def display_stock_screener():
                         "Category": f"{category_emoji} {result.growth_category.value.replace('_', ' ').title()}",
                         "Price": f"${result.current_price:.2f}",
                         "Target": f"${result.target_price:.2f}"
-                        else "-",  # ✅ FIX: Changed : to if/else
+                        if result.target_price
+                        else "-",  # ✅ FIXED
                         "Potential": potential_return,
                         "RSI": f"{result.rsi:.1f}" if result.rsi else "-",
                         "MACD": result.macd_signal or "-",
@@ -2671,19 +2672,23 @@ def display_paper_trading_dashboard():
     """Paper Trading Dashboard - Test strategies without risk"""
 
     st.header("📋 Paper Trading Dashboard")
-    st.markdown("**Learn to trade with $100K virtual money • Zero risk • Real opportunities**")
+    st.markdown(
+        "**Learn to trade with $100K virtual money • Zero risk • Real opportunities**"
+    )
 
     # ✅ ADD: Beginner tips
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.info("💡 **Beginner Tip**: Start with 3-5 stocks, risk only 2% per trade, use stop losses!")
+        st.info(
+            "💡 **Beginner Tip**: Start with 3-5 stocks, risk only 2% per trade, use stop losses!"
+        )
 
     with col2:
         if st.button("📚 Trading Tips"):
-            st.session_state.show_tips = not st.session_state.get('show_tips', False)
+            st.session_state.show_tips = not st.session_state.get("show_tips", False)
 
-    if st.session_state.get('show_tips', False):
+    if st.session_state.get("show_tips", False):
         st.markdown("""
         ### 🎓 Beginner Trading Tips
 
@@ -2716,10 +2721,10 @@ def display_paper_trading_dashboard():
 
     portfolio = st.session_state.paper_portfolio
     positions_value = sum(
-        pos['quantity'] * pos['current_price']
-        for pos in portfolio['positions'].values()
+        pos["quantity"] * pos["current_price"]
+        for pos in portfolio["positions"].values()
     )
-    total_value = portfolio['cash'] + positions_value
+    total_value = portfolio["cash"] + positions_value
     total_return = ((total_value - INITIAL_CAPITAL) / INITIAL_CAPITAL) * 100
 
     with col1:
@@ -2739,13 +2744,19 @@ def display_paper_trading_dashboard():
     st.markdown("---")
     st.subheader("🎯 Affordable Stock Recommendations ($2-$50)")  # ✅ CHANGED
 
-    st.markdown("**AI-powered screening finds affordable, high-potential stocks perfect for beginners**")
+    st.markdown(
+        "**AI-powered screening finds affordable, high-potential stocks perfect for beginners**"
+    )
 
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        if st.button("🔍 Find Affordable Stocks", help="Scan for stocks under $50", type="primary"):  # ✅ CHANGED
-            if SCREENER_LOADED and 'screener' in st.session_state:
+        if st.button(
+            "🔍 Find Affordable Stocks",
+            help="Scan for stocks under $50",
+            type="primary",
+        ):  # ✅ CHANGED
+            if SCREENER_LOADED and "screener" in st.session_state:
                 with st.spinner("🤖 Scanning 100+ affordable stocks..."):
                     try:
                         # ✅ Use beginner scan
@@ -2760,75 +2771,132 @@ def display_paper_trading_dashboard():
                 st.info("Using demo recommendations (affordable stocks)...")
                 # ✅ Demo with AFFORDABLE stocks
                 st.session_state.scan_results = {
-                    'SOFI': type('obj', (), {
-                        'symbol': 'SOFI', 'score': 0.82, 'current_price': 9.75,
-                        'target_price': 12.50, 'growth_category': type('cat', (), {'value': 'high_growth'})()
-                    })(),
-                    'PLTR': type('obj', (), {
-                        'symbol': 'PLTR', 'score': 0.78, 'current_price': 17.25,
-                        'target_price': 22.00, 'growth_category': type('cat', (), {'value': 'high_growth'})()
-                    })(),
-                    'NIO': type('obj', (), {
-                        'symbol': 'NIO', 'score': 0.75, 'current_price': 8.50,
-                        'target_price': 11.00, 'growth_category': type('cat', (), {'value': 'moderate_growth'})()
-                    })(),
-                    'F': type('obj', (), {
-                        'symbol': 'F', 'score': 0.71, 'current_price': 12.80,
-                        'target_price': 15.50, 'growth_category': type('cat', (), {'value': 'stable_growth'})()
-                    })(),
+                    "SOFI": type(
+                        "obj",
+                        (),
+                        {
+                            "symbol": "SOFI",
+                            "score": 0.82,
+                            "current_price": 9.75,
+                            "target_price": 12.50,
+                            "growth_category": type(
+                                "cat", (), {"value": "high_growth"}
+                            )(),
+                        },
+                    )(),
+                    "PLTR": type(
+                        "obj",
+                        (),
+                        {
+                            "symbol": "PLTR",
+                            "score": 0.78,
+                            "current_price": 17.25,
+                            "target_price": 22.00,
+                            "growth_category": type(
+                                "cat", (), {"value": "high_growth"}
+                            )(),
+                        },
+                    )(),
+                    "NIO": type(
+                        "obj",
+                        (),
+                        {
+                            "symbol": "NIO",
+                            "score": 0.75,
+                            "current_price": 8.50,
+                            "target_price": 11.00,
+                            "growth_category": type(
+                                "cat", (), {"value": "moderate_growth"}
+                            )(),
+                        },
+                    )(),
+                    "F": type(
+                        "obj",
+                        (),
+                        {
+                            "symbol": "F",
+                            "score": 0.71,
+                            "current_price": 12.80,
+                            "target_price": 15.50,
+                            "growth_category": type(
+                                "cat", (), {"value": "stable_growth"}
+                            )(),
+                        },
+                    )(),
                 }
                 st.success("✅ Demo: 4 affordable stocks found!")
                 st.rerun()
 
     with col2:
-        if st.session_state.get('last_scan_time'):
-            minutes_ago = int((datetime.now() - st.session_state.last_scan_time).seconds / 60)
+        if st.session_state.get("last_scan_time"):
+            minutes_ago = int(
+                (datetime.now() - st.session_state.last_scan_time).seconds / 60
+            )
             st.info(f"🕒 Last scan: {minutes_ago} min ago")
 
     # Display Top Recommendations
-    if st.session_state.get('scan_results'):
+    if st.session_state.get("scan_results"):
         st.markdown("---")
         st.subheader("🏆 Top Affordable Picks")
 
         results = st.session_state.scan_results
-        top_picks = sorted(results.values(), key=lambda x: x.score, reverse=True)[:10]  # Show top 10
+        top_picks = sorted(results.values(), key=lambda x: x.score, reverse=True)[
+            :10
+        ]  # Show top 10
 
         for pick in top_picks:
             # ✅ ADD: Beginner-friendly labels
-            affordability = "🟢 Very Affordable" if pick.current_price < 15 else "🟡 Affordable" if pick.current_price < 30 else "🟠 Moderate"
+            affordability = (
+                "🟢 Very Affordable"
+                if pick.current_price < 15
+                else "🟡 Affordable"
+                if pick.current_price < 30
+                else "🟠 Moderate"
+            )
 
             with st.expander(
                 f"{'🚀' if pick.score > 0.8 else '📈'} {pick.symbol} - ${pick.current_price:.2f} - {affordability}",
-                expanded=True
+                expanded=True,
             ):
                 col1, col2, col3 = st.columns([2, 1, 1])
 
                 with col1:
                     st.markdown(f"**Current Price:** ${pick.current_price:.2f}")
                     if pick.target_price:
-                        upside = ((pick.target_price - pick.current_price) / pick.current_price) * 100
-                        st.markdown(f"**Target Price:** ${pick.target_price:.2f} (**{upside:+.1f}% potential**)")
+                        upside = (
+                            (pick.target_price - pick.current_price)
+                            / pick.current_price
+                        ) * 100
+                        st.markdown(
+                            f"**Target Price:** ${pick.target_price:.2f} (**{upside:+.1f}% potential**)"
+                        )
 
                     # ✅ ADD: Beginner context
                     shares_for_1000 = int(1000 / pick.current_price)
-                    st.caption(f"💡 $1,000 buys ~{shares_for_1000} shares • Low entry barrier")
+                    st.caption(
+                        f"💡 $1,000 buys ~{shares_for_1000} shares • Low entry barrier"
+                    )
 
                     st.markdown(f"**AI Score:** {pick.score:.3f}/1.0")
-                    st.markdown(f"**Category:** {pick.growth_category.value.replace('_', ' ').title()}")
+                    st.markdown(
+                        f"**Category:** {pick.growth_category.value.replace('_', ' ').title()}"
+                    )
 
                 with col2:
                     quantity = st.number_input(
                         "Shares",
                         min_value=1,
                         max_value=10000,
-                        value=min(100, int(2000 / pick.current_price)),  # ✅ Default to ~$2k position
-                        key=f"qty_{pick.symbol}"
+                        value=min(
+                            100, int(2000 / pick.current_price)
+                        ),  # ✅ Default to ~$2k position
+                        key=f"qty_{pick.symbol}",
                     )
                     position_cost = quantity * pick.current_price
                     st.caption(f"Cost: ${position_cost:,.2f}")
 
                     # ✅ ADD: Risk indicator
-                    risk_pct = (position_cost / portfolio['cash']) * 100
+                    risk_pct = (position_cost / portfolio["cash"]) * 100
                     if risk_pct < 5:
                         st.success(f"✅ Low risk: {risk_pct:.1f}%")
                     elif risk_pct < 10:
@@ -2837,74 +2905,88 @@ def display_paper_trading_dashboard():
                         st.error(f"🚨 High risk: {risk_pct:.1f}%")
 
                 with col3:
-                    if st.button(f"📈 Paper Buy", key=f"buy_{pick.symbol}", help="Add to paper portfolio"):
-                        if portfolio['cash'] >= position_cost:
+                    if st.button(
+                        f"📈 Paper Buy",
+                        key=f"buy_{pick.symbol}",
+                        help="Add to paper portfolio",
+                    ):
+                        if portfolio["cash"] >= position_cost:
                             # Execute paper trade
-                            if pick.symbol in portfolio['positions']:
-                                pos = portfolio['positions'][pick.symbol]
-                                new_qty = pos['quantity'] + quantity
-                                new_avg = ((pos['quantity'] * pos['entry_price']) + position_cost) / new_qty
-                                pos['quantity'] = new_qty
-                                pos['entry_price'] = new_avg
+                            if pick.symbol in portfolio["positions"]:
+                                pos = portfolio["positions"][pick.symbol]
+                                new_qty = pos["quantity"] + quantity
+                                new_avg = (
+                                    (pos["quantity"] * pos["entry_price"])
+                                    + position_cost
+                                ) / new_qty
+                                pos["quantity"] = new_qty
+                                pos["entry_price"] = new_avg
                             else:
-                                portfolio['positions'][pick.symbol] = {
-                                    'symbol': pick.symbol,
-                                    'quantity': quantity,
-                                    'entry_price': pick.current_price,
-                                    'current_price': pick.current_price,
-                                    'entry_time': datetime.now().isoformat()
+                                portfolio["positions"][pick.symbol] = {
+                                    "symbol": pick.symbol,
+                                    "quantity": quantity,
+                                    "entry_price": pick.current_price,
+                                    "current_price": pick.current_price,
+                                    "entry_time": datetime.now().isoformat(),
                                 }
 
-                            portfolio['cash'] -= position_cost
+                            portfolio["cash"] -= position_cost
 
                             trade = {
-                                'time': datetime.now().isoformat(),
-                                'type': 'BUY',
-                                'symbol': pick.symbol,
-                                'quantity': quantity,
-                                'price': pick.current_price,
-                                'total': position_cost
+                                "time": datetime.now().isoformat(),
+                                "type": "BUY",
+                                "symbol": pick.symbol,
+                                "quantity": quantity,
+                                "price": pick.current_price,
+                                "total": position_cost,
                             }
-                            portfolio['trade_history'].append(trade)
+                            portfolio["trade_history"].append(trade)
 
-                            st.success(f"✅ Bought {quantity} shares of {pick.symbol} @ ${pick.current_price:.2f}")
+                            st.success(
+                                f"✅ Bought {quantity} shares of {signal['Symbol']} @ ${pick.current_price:.2f}"
+                            )
                             st.rerun()
                         else:
-                            st.error(f"❌ Insufficient cash. Need ${position_cost:,.2f}, have ${portfolio['cash']:,.2f}")
+                            st.error(
+                                f"❌ Insufficient cash. Need ${position_cost:,.2f}, have ${portfolio['cash']:,.2f}"
+                            )
 
     # Current Paper Positions
     st.markdown("---")
     st.subheader("📊 Current Paper Positions")
 
-    if portfolio['positions']:
+    if portfolio["positions"]:
         positions_data = []
-        for symbol, pos in portfolio['positions'].items():
+        for symbol, pos in portfolio["positions"].items():
             # Simulate price updates (in real app, fetch live prices)
             import random
-            random.seed(hash(symbol))
-            current_price = pos['entry_price'] * (1 + random.uniform(-0.05, 0.05))
-            pos['current_price'] = current_price
 
-            market_value = pos['quantity'] * current_price
-            cost_basis = pos['quantity'] * pos['entry_price']
+            random.seed(hash(symbol))
+            current_price = pos["entry_price"] * (1 + random.uniform(-0.05, 0.05))
+            pos["current_price"] = current_price
+
+            market_value = pos["quantity"] * current_price
+            cost_basis = pos["quantity"] * pos["entry_price"]
             pnl = market_value - cost_basis
             pnl_pct = (pnl / cost_basis) * 100
 
-            positions_data.append({
-                'Symbol': symbol,
-                'Quantity': pos['quantity'],
-                'Entry Price': f"${pos['entry_price']:.2f}",
-                'Current Price': f"${current_price:.2f}",
-                'Market Value': f"${market_value:,.2f}",
-                'P&L': f"${pnl:+,.2f}",
-                'Return %': f"{pnl_pct:+.1f}%",
-                'Action': symbol  # For button key
-            })
+            positions_data.append(
+                {
+                    "Symbol": symbol,
+                    "Quantity": pos["quantity"],
+                    "Entry Price": f"${pos['entry_price']:.2f}",
+                    "Current Price": f"${current_price:.2f}",
+                    "Market Value": f"${market_value:,.2f}",
+                    "P&L": f"${pnl:+,.2f}",
+                    "Return %": f"{pnl_pct:+.1f}%",
+                    "Action": symbol,  # For button key
+                }
+            )
 
         df = pd.DataFrame(positions_data)
 
         # Display table without Action column
-        display_df = df.drop('Action', axis=1)
+        display_df = df.drop("Action", axis=1)
         st.dataframe(display_df, use_container_width=True, hide_index=True)
 
         # Sell buttons
@@ -2912,82 +2994,97 @@ def display_paper_trading_dashboard():
         cols = st.columns(len(positions_data))
         for i, (col, pos_data) in enumerate(zip(cols, positions_data)):
             with col:
-                symbol = pos_data['Action']
+                symbol = pos_data["Action"]
                 if st.button(f"📉 Sell {symbol}", key=f"sell_{symbol}"):
-                    pos = portfolio['positions'][symbol]
-                    proceeds = pos['quantity'] * pos['current_price']
-                    portfolio['cash'] += proceeds
+                    pos = portfolio["positions"][symbol]
+                    proceeds = pos["quantity"] * pos["current_price"]
+                    portfolio["cash"] += proceeds
 
                     # Record trade
                     trade = {
-                        'time': datetime.now().isoformat(),
-                        'type': 'SELL',
-                        'symbol': symbol,
-                        'quantity': pos['quantity'],
-                        'price': pos['current_price'],
-                        'total': proceeds
+                        "time": datetime.now().isoformat(),
+                        "type": "SELL",
+                        "symbol": symbol,
+                        "quantity": pos["quantity"],
+                        "price": pos["current_price"],
+                        "total": proceeds,
                     }
-                    portfolio['trade_history'].append(trade)
+                    portfolio["trade_history"].append(trade)
 
                     # Remove position
-                    del portfolio['positions'][symbol]
+                    del portfolio["positions"][symbol]
 
                     st.success(f"✅ Sold {pos['quantity']} shares of {symbol}")
                     st.rerun()
     else:
-        st.info("📭 No paper positions yet. Use the screener above to find stocks to buy!")
+        st.info(
+            "📭 No paper positions yet. Use the screener above to find stocks to buy!"
+        )
 
     # Trade History
     st.markdown("---")
     st.subheader("📜 Paper Trade History")
 
-    if portfolio['trade_history']:
-        recent_trades = portfolio['trade_history'][-10:][::-1]  # Last 10, most recent first
+    if portfolio["trade_history"]:
+        recent_trades = portfolio["trade_history"][-10:][
+            ::-1
+        ]  # Last 10, most recent first
 
         trade_data = []
         for trade in recent_trades:
-            trade_data.append({
-                'Time': trade['time'][:19].replace('T', ' '),
-                'Type': f"{'🟢' if trade['type'] == 'BUY' else '🔴'} {trade['type']}",
-                'Symbol': trade['symbol'],
-                'Quantity': trade['quantity'],
-                'Price': f"${trade['price']:.2f}",
-                'Total': f"${trade['total']:,.2f}"
-            })
+            trade_data.append(
+                {
+                    "Time": trade["time"][:19].replace("T", " "),
+                    "Type": f"{'🟢' if trade['type'] == 'BUY' else '🔴'} {trade['type']}",
+                    "Symbol": trade["symbol"],
+                    "Quantity": trade["quantity"],
+                    "Price": f"${trade['price']:.2f}",
+                    "Total": f"${trade['total']:,.2f}",
+                }
+            )
 
         st.dataframe(trade_data, use_container_width=True, hide_index=True)
     else:
         st.info("📜 No trades yet. Start by buying stocks from recommendations above!")
 
     # Performance Stats
-    if len(portfolio['trade_history']) > 0:
+    if len(portfolio["trade_history"]) > 0:
         st.markdown("---")
         st.subheader("📈 Performance Statistics")
 
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            total_trades = len(portfolio['trade_history'])
+            total_trades = len(portfolio["trade_history"])
             st.metric("Total Trades", total_trades)
 
         with col2:
-            buys = sum(1 for t in portfolio['trade_history'] if t['type'] == 'BUY')
-            sells = sum(1 for t in portfolio['trade_history'] if t['type'] == 'SELL')
+            buys = sum(1 for t in portfolio["trade_history"] if t["type"] == "BUY")
+            sells = sum(1 for t in portfolio["trade_history"] if t["type"] == "SELL")
             st.metric("Buys / Sells", f"{buys} / {sells}")
 
         with col3:
             # Calculate win rate from closed positions
-            closed_positions = [t for t in portfolio['trade_history'] if t['type'] == 'SELL']
+            closed_positions = [
+                t for t in portfolio["trade_history"] if t["type"] == "SELL"
+            ]
             if closed_positions:
                 # Simplified win rate calculation
-                wins = sum(1 for t in closed_positions if t['total'] > t['quantity'] * t['price'] * 0.98)
-                win_rate = (wins / len(closed_positions)) * 100 if closed_positions else 0
+                wins = sum(
+                    1
+                    for t in closed_positions
+                    if t["total"] > t["quantity"] * t["price"] * 0.98
+                )
+                win_rate = (
+                    (wins / len(closed_positions)) * 100 if closed_positions else 0
+                )
                 st.metric("Win Rate", f"{win_rate:.1f}%")
             else:
                 st.metric("Win Rate", "N/A")
 
         with col4:
             st.metric("ROI", f"{total_return:+.1f}%")
+
 
 # ✅ ADD THIS AT THE END - ACTUALLY CALL THE MAIN FUNCTION
 if __name__ == "__main__":
