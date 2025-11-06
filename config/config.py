@@ -80,3 +80,35 @@ DEFAULT_SYMBOLS = [
 ]
 
 TRADING_SYMBOLS = os.getenv("TRADING_SYMBOLS", ",".join(DEFAULT_SYMBOLS)).split(",")
+
+"""
+Configuration settings for AI Day Trading Bot
+"""
+
+# Initial capital for trading
+INITIAL_CAPITAL = 100000.0
+
+# List of symbols to trade
+TRADING_SYMBOLS = [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "TSLA",
+    "NVDA",
+    "META",
+    "NFLX",
+]
+
+# Risk management settings
+MAX_POSITION_SIZE = 0.20  # 20% of portfolio per position
+STOP_LOSS_PCT = 0.05  # 5% stop loss
+TAKE_PROFIT_PCT = 0.15  # 15% take profit
+
+# Trading engine settings
+MAX_POSITIONS = 5
+SIGNAL_THRESHOLD = 0.6
+
+# API settings (if needed)
+ALPHA_VANTAGE_API_KEY = None  # Set if using Alpha Vantage
+POLYGON_API_KEY = None  # Set if using Polygon

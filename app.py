@@ -143,7 +143,7 @@ try:
 except (ImportError, KeyError, ModuleNotFoundError) as e:
     pass  # Suppress - will use demo mode
 
-# Configuration
+# Configuration with fallbacks
 INITIAL_CAPITAL = 100000.0
 TRADING_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN", "NVDA", "META", "NFLX"]
 
@@ -154,9 +154,8 @@ try:
     INITIAL_CAPITAL = CONFIG_CAPITAL
     TRADING_SYMBOLS = CONFIG_SYMBOLS
     logger.info("✅ Configuration loaded from config.py")
-except (ImportError, KeyError) as e:
-    logger.info(f"Using default configuration (config.py not found)")
-    pass
+except (ImportError, ModuleNotFoundError, KeyError) as e:
+    logger.info(f"ℹ️ Using default configuration (config.py not found: {e})")
 
 # Page configuration
 st.set_page_config(
