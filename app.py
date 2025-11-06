@@ -2939,3 +2939,8 @@ def main():
         st.markdown(f"• Mode: {status_text}")
         st.markdown(f"• Bot: {bot_status}")
         st.markdown(f"• Version: 2.1.0")
+
+
+# ✅ ADD THIS AT THE END - ACTUALLY CALL THE MAIN FUNCTION
+if __name__ == "__main__":
+    main()
