@@ -67,7 +67,7 @@ except ImportError as e:
     st.sidebar.warning(f"Data sources not available: {e}")
 
 try:
-    from src.signals import SignalManager
+    from src.signals.signal_manager import SignalManager
 
     MODULES_LOADED["signals"] = True
 except ImportError as e:
@@ -146,12 +146,6 @@ try:
 except ImportError:
     TRADING_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN"]
     INITIAL_CAPITAL = 100000.0
-
-# Configure logging for deployment
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
 
 # Page configuration
 st.set_page_config(
