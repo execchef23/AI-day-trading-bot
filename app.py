@@ -10,40 +10,32 @@ import sys
 import warnings
 from datetime import datetime
 
-# Suppress warnings for cleaner deployment logs
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Streamlit must be imported first for deployment
 try:
     import streamlit as st
 except ImportError:
     print("❌ Streamlit not found. Install with: pip install streamlit")
     sys.exit(1)
 
-# Core libraries with fallbacks
 try:
     from collections import defaultdict
-
     import numpy as np
     import pandas as pd
 except ImportError as e:
     st.error(f"❌ Core libraries missing: {e}")
     st.stop()
 
-# Plotting libraries with fallbacks
 try:
     import plotly.graph_objects as go
-
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
     st.warning("⚠️ Plotly not available - charts disabled")
 
-# Setup logging first
 import logging
 
-# Configure logging only once to prevent duplicates
 if not logging.getLogger().handlers:
     logging.basicConfig(
         level=logging.INFO,
@@ -52,14 +44,12 @@ if not logging.getLogger().handlers:
     )
 logger = logging.getLogger(__name__)
 
-# Add src directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
 # Prevent repeated imports with module-level guard
 if "MODULES_IMPORT_GUARD" not in st.session_state:
     st.session_state.MODULES_IMPORT_GUARD = True
 
-    # Import our modules with error handling
     MODULES_LOADED = {
         "data_manager": False,
         "signals": False,
@@ -69,30 +59,24 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
 
     try:
         from src.data_sources import DataManager
-
         MODULES_LOADED["data_manager"] = True
     except (ImportError, KeyError, ModuleNotFoundError) as e:
-        pass  # Suppress - will use demo mode
+        pass
 
     try:
         from src.signals.signal_manager import SignalManager
-
         MODULES_LOADED["signals"] = True
     except (ImportError, KeyError) as e:
-        # Suppress detailed error - will use demo mode
         logger.debug(f"Signal Manager not available: {e}")
         pass
 
     try:
         from src.risk_management.portfolio_manager import PortfolioManager
-
         MODULES_LOADED["risk_management"] = True
     except (ImportError, KeyError) as e:
-        # Suppress detailed error - will use demo mode
         logger.debug(f"Portfolio Manager not available: {e}")
         pass
 
-    # Small Account Trading System
     try:
         from src.small_account import (
             AccountTier,
@@ -103,13 +87,12 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
             SmallAccountStrategies,
             StrategyType,
         )
-
         MODULES_LOADED["small_account"] = True
         logger.info("✅ Small Account Trading System loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
-        pass  # Suppress - will use demo mode
+        pass
 
-    # Trading Engine
+    # ✅ FIX: Define TRADING_ENGINE_LOADED
     TRADING_ENGINE_LOADED = False
     try:
         from src.trading_engine.live_trading_engine import (
@@ -117,23 +100,21 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
             TradingState,
             get_trading_engine,
         )
-
         TRADING_ENGINE_LOADED = True
         logger.info("✅ Live Trading Engine loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
-        pass  # Suppress - will use demo mode
+        pass
 
-    # Real-Time Monitoring System
+    # ✅ FIX: Define MONITORING_SYSTEM_LOADED
     MONITORING_SYSTEM_LOADED = False
     try:
         from src.monitoring import AlertLevel, AlertType, RealTimeMonitor, get_monitor
-
         MONITORING_SYSTEM_LOADED = True
         logger.info("✅ Real-Time Monitoring System loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
-        pass  # Suppress - will use demo mode
+        pass
 
-    # Stock Growth Screener System
+    # ✅ FIX: Define SCREENER_LOADED
     SCREENER_LOADED = False
     try:
         from src.screening.stock_screener import (
@@ -142,13 +123,17 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
             StockGrowthScreener,
             get_screener,
         )
-
         SCREENER_LOADED = True
         logger.info("✅ Stock Growth Screener loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
-        pass  # Suppress - will use demo mode
+        pass
+
+    # Store these in session state so they persist
+    st.session_state.TRADING_ENGINE_LOADED = TRADING_ENGINE_LOADED
+    st.session_state.MONITORING_SYSTEM_LOADED = MONITORING_SYSTEM_LOADED
+    st.session_state.SCREENER_LOADED = SCREENER_LOADED
 else:
-    # Reuse existing MODULES_LOADED from session state
+    # Reuse from session state
     MODULES_LOADED = st.session_state.get(
         "MODULES_LOADED",
         {
@@ -158,8 +143,10 @@ else:
             "small_account": False,
         },
     )
+    TRADING_ENGINE_LOADED = st.session_state.get("TRADING_ENGINE_LOADED", False)
+    MONITORING_SYSTEM_LOADED = st.session_state.get("MONITORING_SYSTEM_LOADED", False)
+    SCREENER_LOADED = st.session_state.get("SCREENER_LOADED", False)
 
-# Store in session state for reuse
 st.session_state.MODULES_LOADED = MODULES_LOADED
 
 # Configuration with fallbacks
@@ -2217,8 +2204,7 @@ def display_stock_screener():
                         "Category": f"{category_emoji} {result.growth_category.value.replace('_', ' ').title()}",
                         "Price": f"${result.current_price:.2f}",
                         "Target": f"${result.target_price:.2f}"
-                        if result.target_price
-                        else "-",
+                        : "-",
                         "Potential": potential_return,
                         "RSI": f"{result.rsi:.1f}" if result.rsi else "-",
                         "MACD": result.macd_signal or "-",
