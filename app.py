@@ -1260,7 +1260,7 @@ def display_trading_signals():
                             help=f"Place {signal['Signal']} order for {signal['Symbol']}",
                         ):
                             st.success(
-                                f" {signal['Signal']} order placed for {signal['Symbol']}"
+                                f"✅ {signal['Signal']} order placed for {signal['Symbol']}"
                             )
 
                 # Close the div
@@ -1276,7 +1276,7 @@ def display_trading_signals():
 
         with col2:
             sell_signals = len([s for s in filtered_signals if s["Signal"] == "SELL"])
-            st.metric("� SELL Signals", sell_signals)
+            st.metric("🔴 SELL Signals", sell_signals)
 
         with col3:
             hold_signals = len([s for s in filtered_signals if s["Signal"] == "HOLD"])
@@ -2203,8 +2203,7 @@ def display_stock_screener():
                         "Score": f"{result.score:.3f}",
                         "Category": f"{category_emoji} {result.growth_category.value.replace('_', ' ').title()}",
                         "Price": f"${result.current_price:.2f}",
-                        "Target": f"${result.target_price:.2f}"
-                        : "-",
+                        "Target": f"${result.target_price:.2f}" : "-",
                         "Potential": potential_return,
                         "RSI": f"{result.rsi:.1f}" if result.rsi else "-",
                         "MACD": result.macd_signal or "-",
