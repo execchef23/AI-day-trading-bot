@@ -23,9 +23,10 @@ except ImportError:
 
 # Core libraries with fallbacks
 try:
+    from collections import defaultdict
+
     import numpy as np
     import pandas as pd
-    from collections import defaultdict
 except ImportError as e:
     st.error(f"❌ Core libraries missing: {e}")
     st.stop()
@@ -41,6 +42,7 @@ except ImportError:
 
 # Setup logging first
 import logging
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -50,7 +52,12 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
 # Import our modules with error handling
-MODULES_LOADED = {"data_manager": False, "signals": False, "risk_management": False, "small_account": False}
+MODULES_LOADED = {
+    "data_manager": False,
+    "signals": False,
+    "risk_management": False,
+    "small_account": False,
+}
 
 try:
     from src.data_sources import DataManager
@@ -68,6 +75,7 @@ except ImportError as e:
 
 try:
     from src.risk_management.portfolio_manager import PortfolioManager
+
     MODULES_LOADED["risk_management"] = True
 except ImportError:
     logger.warning("⚠️ Risk management module not available")
@@ -75,9 +83,15 @@ except ImportError:
 # Small Account Trading System
 try:
     from src.small_account import (
-        SmallAccountPositionSizer, AccountTier, GrowthStrategy, StrategyType,
-        SmallAccountStrategies, GrowthCalculator, GrowthScenario
+        AccountTier,
+        GrowthCalculator,
+        GrowthScenario,
+        GrowthStrategy,
+        SmallAccountPositionSizer,
+        SmallAccountStrategies,
+        StrategyType,
     )
+
     MODULES_LOADED["small_account"] = True
     logger.info("✅ Small Account Trading System loaded")
 except ImportError:
@@ -86,7 +100,12 @@ except ImportError:
 # Trading Engine
 TRADING_ENGINE_LOADED = False
 try:
-    from src.trading_engine.live_trading_engine import get_trading_engine, TradingConfig, TradingState
+    from src.trading_engine.live_trading_engine import (
+        TradingConfig,
+        TradingState,
+        get_trading_engine,
+    )
+
     TRADING_ENGINE_LOADED = True
     logger.info("✅ Live Trading Engine loaded")
 except ImportError:
@@ -95,7 +114,8 @@ except ImportError:
 # Real-Time Monitoring System
 MONITORING_SYSTEM_LOADED = False
 try:
-    from src.monitoring import RealTimeMonitor, get_monitor, AlertLevel, AlertType
+    from src.monitoring import AlertLevel, AlertType, RealTimeMonitor, get_monitor
+
     MONITORING_SYSTEM_LOADED = True
     logger.info("✅ Real-Time Monitoring System loaded")
 except ImportError:
@@ -104,7 +124,13 @@ except ImportError:
 # Stock Growth Screener System
 SCREENER_LOADED = False
 try:
-    from src.screening.stock_screener import StockGrowthScreener, ScreeningCriteria, GrowthCategory, get_screener
+    from src.screening.stock_screener import (
+        GrowthCategory,
+        ScreeningCriteria,
+        StockGrowthScreener,
+        get_screener,
+    )
+
     SCREENER_LOADED = True
     logger.info("✅ Stock Growth Screener loaded")
 except ImportError:
@@ -175,6 +201,7 @@ if "screener" not in st.session_state and SCREENER_LOADED:
     if MODULES_LOADED["data_manager"]:
         try:
             from src.data_sources.data_manager import DataManager
+
             data_manager = DataManager()
             st.session_state.screener.set_components(data_manager=data_manager)
         except Exception as e:
@@ -188,9 +215,13 @@ if "scan_results" not in st.session_state:
 if "small_account_balance" not in st.session_state:
     st.session_state.small_account_balance = 500.0
 if "selected_strategy" not in st.session_state:
-    st.session_state.selected_strategy = StrategyType.SWING_TRADING if MODULES_LOADED["small_account"] else None
+    st.session_state.selected_strategy = (
+        StrategyType.SWING_TRADING if MODULES_LOADED["small_account"] else None
+    )
 if "growth_scenario" not in st.session_state:
-    st.session_state.growth_scenario = GrowthScenario.MODERATE if MODULES_LOADED["small_account"] else None
+    st.session_state.growth_scenario = (
+        GrowthScenario.MODERATE if MODULES_LOADED["small_account"] else None
+    )
 if "position_sizer" not in st.session_state and MODULES_LOADED["small_account"]:
     st.session_state.position_sizer = SmallAccountPositionSizer()
 if "growth_calculator" not in st.session_state and MODULES_LOADED["small_account"]:
@@ -253,20 +284,23 @@ def generate_demo_data_for_symbol(symbol: str, time_period: str):
     """Generate demo data for any symbol"""
 
     # Map time periods to number of days
-    period_days = {
-        "1 Month": 30,
-        "3 Months": 90,
-        "6 Months": 180,
-        "1 Year": 365
-    }
+    period_days = {"1 Month": 30, "3 Months": 90, "6 Months": 180, "1 Year": 365}
 
     days = period_days.get(time_period, 30)
-    dates = pd.date_range(start=f"2024-{10-days//30:02d}-01", periods=days, freq="D")
+    dates = pd.date_range(
+        start=f"2024-{10 - days // 30:02d}-01", periods=days, freq="D"
+    )
 
     # Base prices for different symbols
     base_prices = {
-        "AAPL": 150, "MSFT": 300, "GOOGL": 2500, "AMZN": 120,
-        "TSLA": 200, "NVDA": 400, "META": 250, "NFLX": 180
+        "AAPL": 150,
+        "MSFT": 300,
+        "GOOGL": 2500,
+        "AMZN": 120,
+        "TSLA": 200,
+        "NVDA": 400,
+        "META": 250,
+        "NFLX": 180,
     }
 
     base_price = base_prices.get(symbol, 100)
@@ -279,27 +313,32 @@ def generate_demo_data_for_symbol(symbol: str, time_period: str):
     for ret in returns[1:]:
         prices.append(prices[-1] * (1 + ret))
 
-    return pd.DataFrame({
-        "Open": [p * (0.99 + np.random.random() * 0.02) for p in prices],
-        "High": [p * (1.005 + np.random.random() * 0.015) for p in prices],
-        "Low": [p * (0.985 + np.random.random() * 0.01) for p in prices],
-        "Close": prices,
-        "Volume": np.random.randint(500000, 10000000, len(dates)),
-    }, index=dates)
+    return pd.DataFrame(
+        {
+            "Open": [p * (0.99 + np.random.random() * 0.02) for p in prices],
+            "High": [p * (1.005 + np.random.random() * 0.015) for p in prices],
+            "Low": [p * (0.985 + np.random.random() * 0.01) for p in prices],
+            "Close": prices,
+            "Volume": np.random.randint(500000, 10000000, len(dates)),
+        },
+        index=dates,
+    )
 
 
 def create_line_chart(data, symbol, title):
     """Create a line chart for price data"""
     fig = go.Figure()
 
-    fig.add_trace(go.Scatter(
-        x=data.index,
-        y=data["Close"],
-        mode="lines",
-        name=f"{symbol} Close",
-        line=dict(color="#1f77b4", width=2),
-        hovertemplate=f"{symbol}<br>Date: %{{x}}<br>Price: $%{{y:.2f}}<extra></extra>"
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["Close"],
+            mode="lines",
+            name=f"{symbol} Close",
+            line=dict(color="#1f77b4", width=2),
+            hovertemplate=f"{symbol}<br>Date: %{{x}}<br>Price: $%{{y:.2f}}<extra></extra>",
+        )
+    )
 
     fig.update_layout(
         title=title,
@@ -307,7 +346,7 @@ def create_line_chart(data, symbol, title):
         yaxis_title="Price ($)",
         height=500,
         showlegend=True,
-        hovermode='x'
+        hovermode="x",
     )
 
     return fig
@@ -317,23 +356,25 @@ def create_candlestick_chart(data, symbol, title):
     """Create a candlestick chart"""
     fig = go.Figure()
 
-    fig.add_trace(go.Candlestick(
-        x=data.index,
-        open=data['Open'],
-        high=data['High'],
-        low=data['Low'],
-        close=data['Close'],
-        name=symbol,
-        increasing_line_color='green',
-        decreasing_line_color='red'
-    ))
+    fig.add_trace(
+        go.Candlestick(
+            x=data.index,
+            open=data["Open"],
+            high=data["High"],
+            low=data["Low"],
+            close=data["Close"],
+            name=symbol,
+            increasing_line_color="green",
+            decreasing_line_color="red",
+        )
+    )
 
     fig.update_layout(
         title=title,
         xaxis_title="Date",
         yaxis_title="Price ($)",
         height=500,
-        xaxis_rangeslider_visible=False
+        xaxis_rangeslider_visible=False,
     )
 
     return fig
@@ -343,23 +384,27 @@ def create_volume_chart(data, symbol, title):
     """Create a volume chart"""
     fig = go.Figure()
 
-    colors = ['green' if close >= open else 'red'
-              for close, open in zip(data['Close'], data['Open'])]
+    colors = [
+        "green" if close >= open else "red"
+        for close, open in zip(data["Close"], data["Open"])
+    ]
 
-    fig.add_trace(go.Bar(
-        x=data.index,
-        y=data['Volume'],
-        name='Volume',
-        marker_color=colors,
-        hovertemplate=f"{symbol}<br>Date: %{{x}}<br>Volume: %{{y:,.0f}}<extra></extra>"
-    ))
+    fig.add_trace(
+        go.Bar(
+            x=data.index,
+            y=data["Volume"],
+            name="Volume",
+            marker_color=colors,
+            hovertemplate=f"{symbol}<br>Date: %{{x}}<br>Volume: %{{y:,.0f}}<extra></extra>",
+        )
+    )
 
     fig.update_layout(
         title=title.replace("Volume", "Volume Chart"),
         xaxis_title="Date",
         yaxis_title="Volume",
         height=500,
-        showlegend=True
+        showlegend=True,
     )
 
     return fig
@@ -368,15 +413,15 @@ def create_volume_chart(data, symbol, title):
 def display_price_statistics(data, symbol, data_source):
     """Display current price statistics"""
 
-    current_price = data['Close'].iloc[-1]
-    prev_price = data['Close'].iloc[-2] if len(data) > 1 else current_price
+    current_price = data["Close"].iloc[-1]
+    prev_price = data["Close"].iloc[-2] if len(data) > 1 else current_price
     change = current_price - prev_price
     change_pct = (change / prev_price) * 100 if prev_price != 0 else 0
 
     # Calculate statistics
-    high_52w = data['High'].max()
-    low_52w = data['Low'].min()
-    avg_volume = data['Volume'].mean()
+    high_52w = data["High"].max()
+    low_52w = data["Low"].min()
+    avg_volume = data["Volume"].mean()
 
     st.subheader(f"📊 {symbol} Statistics ({data_source} Data)")
 
@@ -386,7 +431,7 @@ def display_price_statistics(data, symbol, data_source):
         st.metric(
             label="Current Price",
             value=f"${current_price:.2f}",
-            delta=f"{change:+.2f} ({change_pct:+.1f}%)"
+            delta=f"{change:+.2f} ({change_pct:+.1f}%)",
         )
 
     with col2:
@@ -406,11 +451,11 @@ def display_technical_indicators(data, symbol):
 
     try:
         # Calculate simple moving averages
-        sma_20 = data['Close'].rolling(window=20).mean()
-        sma_50 = data['Close'].rolling(window=50).mean()
+        sma_20 = data["Close"].rolling(window=20).mean()
+        sma_50 = data["Close"].rolling(window=50).mean()
 
         # Calculate RSI (simple version)
-        delta = data['Close'].diff()
+        delta = data["Close"].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
         rs = gain / loss
@@ -430,22 +475,40 @@ def display_technical_indicators(data, symbol):
         with col3:
             if not rsi.empty:
                 rsi_val = rsi.iloc[-1]
-                rsi_signal = "Overbought" if rsi_val > 70 else "Oversold" if rsi_val < 30 else "Neutral"
+                rsi_signal = (
+                    "Overbought"
+                    if rsi_val > 70
+                    else "Oversold"
+                    if rsi_val < 30
+                    else "Neutral"
+                )
                 st.metric("RSI (14)", f"{rsi_val:.1f}", rsi_signal)
 
         # Plot technical indicators
         if PLOTLY_AVAILABLE:
             fig = go.Figure()
 
-            fig.add_trace(go.Scatter(x=data.index, y=data['Close'], name='Close', line=dict(color='blue')))
-            fig.add_trace(go.Scatter(x=data.index, y=sma_20, name='SMA 20', line=dict(color='orange')))
-            fig.add_trace(go.Scatter(x=data.index, y=sma_50, name='SMA 50', line=dict(color='red')))
+            fig.add_trace(
+                go.Scatter(
+                    x=data.index, y=data["Close"], name="Close", line=dict(color="blue")
+                )
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=data.index, y=sma_20, name="SMA 20", line=dict(color="orange")
+                )
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=data.index, y=sma_50, name="SMA 50", line=dict(color="red")
+                )
+            )
 
             fig.update_layout(
                 title=f"{symbol} - Price with Moving Averages",
                 xaxis_title="Date",
                 yaxis_title="Price ($)",
-                height=400
+                height=400,
             )
 
             st.plotly_chart(fig, use_container_width=True)
@@ -472,14 +535,22 @@ def display_system_status():
             engine_status = engine.get_status()
 
             if engine_status["state"] == "running":
-                if st.button("🛑 Stop Live Engine", type="primary", help="Stop live trading engine"):
+                if st.button(
+                    "🛑 Stop Live Engine",
+                    type="primary",
+                    help="Stop live trading engine",
+                ):
                     result = engine.stop_trading()
                     if result["success"]:
                         st.session_state.trading_active = False
                         st.success("🛑 Live trading engine stopped")
                         st.rerun()
             else:
-                if st.button("🚀 Start Live Engine", type="primary", help="Start live trading engine"):
+                if st.button(
+                    "🚀 Start Live Engine",
+                    type="primary",
+                    help="Start live trading engine",
+                ):
                     result = engine.start_trading()
                     if result["success"]:
                         st.session_state.trading_active = True
@@ -488,12 +559,16 @@ def display_system_status():
         else:
             # Fallback to basic demo controls
             if st.session_state.trading_active:
-                if st.button("🛑 Stop Trading", type="primary", help="Stop automated trading"):
+                if st.button(
+                    "🛑 Stop Trading", type="primary", help="Stop automated trading"
+                ):
                     st.session_state.trading_active = False
                     st.success("🛑 Trading bot stopped")
                     st.rerun()
             else:
-                if st.button("▶️ Start Trading", type="primary", help="Start automated trading"):
+                if st.button(
+                    "▶️ Start Trading", type="primary", help="Start automated trading"
+                ):
                     st.session_state.trading_active = True
                     st.success("▶️ Trading bot started")
                     st.rerun()
@@ -536,27 +611,47 @@ def display_portfolio_overview():
         # Demo portfolio data
         demo_positions, _ = create_demo_data()
 
-        total_value = sum(pos["current_price"] * pos["quantity"] for pos in demo_positions.values())
+        total_value = sum(
+            pos["current_price"] * pos["quantity"] for pos in demo_positions.values()
+        )
         total_pnl = sum(pos["pnl"] for pos in demo_positions.values())
-        pnl_pct = (total_pnl / (total_value - total_pnl)) * 100 if total_value > total_pnl else 0
+        pnl_pct = (
+            (total_pnl / (total_value - total_pnl)) * 100
+            if total_value > total_pnl
+            else 0
+        )
 
         with col1:
             st.metric("Portfolio Value", f"${total_value:,.2f}")
 
         with col2:
             delta_color = "normal" if total_pnl >= 0 else "inverse"
-            st.metric("Total P&L", f"${total_pnl:,.2f}",
-                     delta=f"{pnl_pct:+.1f}%", delta_color=delta_color)
+            st.metric(
+                "Total P&L",
+                f"${total_pnl:,.2f}",
+                delta=f"{pnl_pct:+.1f}%",
+                delta_color=delta_color,
+            )
 
         with col3:
             daily_change = st.session_state.daily_pnl
-            st.metric("Today's P&L", f"${daily_change:+,.2f}",
-                     delta=f"{(daily_change/total_value)*100:+.1f}%" if total_value > 0 else "0%")
+            st.metric(
+                "Today's P&L",
+                f"${daily_change:+,.2f}",
+                delta=f"{(daily_change / total_value) * 100:+.1f}%"
+                if total_value > 0
+                else "0%",
+            )
 
         with col4:
-            win_rate = (st.session_state.winning_trades / max(st.session_state.total_trades, 1)) * 100
-            st.metric("Win Rate", f"{win_rate:.1f}%",
-                     delta=f"{st.session_state.total_trades} trades")
+            win_rate = (
+                st.session_state.winning_trades / max(st.session_state.total_trades, 1)
+            ) * 100
+            st.metric(
+                "Win Rate",
+                f"{win_rate:.1f}%",
+                delta=f"{st.session_state.total_trades} trades",
+            )
 
         # Trading activity controls
         st.markdown("---")
@@ -570,14 +665,18 @@ def display_portfolio_overview():
             if st.button("📊 Generate Signals", help="Run ML models for new signals"):
                 with st.spinner("Analyzing market data..."):
                     import time
+
                     time.sleep(2)  # Simulate processing
                     st.session_state.last_signal_time = datetime.now()
                     st.success("📈 New signals generated!")
 
         with col3:
-            if st.button("💰 Rebalance Portfolio", help="Auto-rebalance based on strategy"):
+            if st.button(
+                "💰 Rebalance Portfolio", help="Auto-rebalance based on strategy"
+            ):
                 with st.spinner("Rebalancing portfolio..."):
                     import time
+
                     time.sleep(1.5)
                     st.success("⚖️ Portfolio rebalanced")
 
@@ -586,24 +685,32 @@ def display_portfolio_overview():
 
         positions_data = []
         for symbol, pos in demo_positions.items():
-            pnl_pct = ((pos['current_price'] / pos['entry_price']) - 1) * 100
-            positions_data.append({
-                "Symbol": symbol,
-                "Quantity": pos["quantity"],
-                "Entry Price": f"${pos['entry_price']:.2f}",
-                "Current Price": f"${pos['current_price']:.2f}",
-                "Market Value": f"${pos['current_price'] * pos['quantity']:,.2f}",
-                "P&L": f"${pos['pnl']:+,.2f}",
-                "Return %": f"{pnl_pct:+.1f}%",
-                "Status": "🟢 Profitable" if pos['pnl'] > 0 else "🔴 Loss" if pos['pnl'] < 0 else "➡️ Flat"
-            })
+            pnl_pct = ((pos["current_price"] / pos["entry_price"]) - 1) * 100
+            positions_data.append(
+                {
+                    "Symbol": symbol,
+                    "Quantity": pos["quantity"],
+                    "Entry Price": f"${pos['entry_price']:.2f}",
+                    "Current Price": f"${pos['current_price']:.2f}",
+                    "Market Value": f"${pos['current_price'] * pos['quantity']:,.2f}",
+                    "P&L": f"${pos['pnl']:+,.2f}",
+                    "Return %": f"{pnl_pct:+.1f}%",
+                    "Status": "🟢 Profitable"
+                    if pos["pnl"] > 0
+                    else "🔴 Loss"
+                    if pos["pnl"] < 0
+                    else "➡️ Flat",
+                }
+            )
 
         st.dataframe(positions_data, use_container_width=True)
 
         # Position management tools
         st.subheader("🛠️ Position Management")
 
-        selected_symbol = st.selectbox("Select position to manage:", list(demo_positions.keys()))
+        selected_symbol = st.selectbox(
+            "Select position to manage:", list(demo_positions.keys())
+        )
 
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -627,7 +734,10 @@ def display_portfolio_overview():
         with col3:
             st.metric("Active Positions", len(st.session_state.positions))
         with col4:
-            st.metric("Trading Status", "🟢 Live" if st.session_state.trading_active else "🔴 Stopped")
+            st.metric(
+                "Trading Status",
+                "🟢 Live" if st.session_state.trading_active else "🔴 Stopped",
+            )
 
         st.info("🔌 Connect to live portfolio data for full functionality")
 
@@ -641,16 +751,18 @@ def display_market_data():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        selected_symbol = st.selectbox("Select Symbol",
-            ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX"])
+        selected_symbol = st.selectbox(
+            "Select Symbol",
+            ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX"],
+        )
 
     with col2:
-        time_period = st.selectbox("Time Period",
-            ["1 Month", "3 Months", "6 Months", "1 Year"])
+        time_period = st.selectbox(
+            "Time Period", ["1 Month", "3 Months", "6 Months", "1 Year"]
+        )
 
     with col3:
-        chart_type = st.selectbox("Chart Type",
-            ["Line Chart", "Candlestick", "Volume"])
+        chart_type = st.selectbox("Chart Type", ["Line Chart", "Candlestick", "Volume"])
 
     # Fetch real-time data button
     if st.button("🔄 Fetch Live Data", help="Click to get real-time market data"):
@@ -663,7 +775,7 @@ def display_market_data():
                     "1 Month": "1mo",
                     "3 Months": "3mo",
                     "6 Months": "6mo",
-                    "1 Year": "1y"
+                    "1 Year": "1y",
                 }
 
                 # Fetch real data
@@ -673,7 +785,9 @@ def display_market_data():
                 if not real_data.empty:
                     st.session_state.live_data = real_data
                     st.session_state.current_symbol = selected_symbol
-                    st.success(f"✅ Fetched {len(real_data)} days of data for {selected_symbol}")
+                    st.success(
+                        f"✅ Fetched {len(real_data)} days of data for {selected_symbol}"
+                    )
                 else:
                     st.error("❌ No data found for this symbol")
 
@@ -684,7 +798,9 @@ def display_market_data():
     data_to_show = None
     data_source = "Demo"
 
-    if hasattr(st.session_state, 'live_data') and hasattr(st.session_state, 'current_symbol'):
+    if hasattr(st.session_state, "live_data") and hasattr(
+        st.session_state, "current_symbol"
+    ):
         if st.session_state.current_symbol == selected_symbol:
             data_to_show = st.session_state.live_data
             data_source = "Live"
@@ -698,11 +814,12 @@ def display_market_data():
             else:
                 # Generate demo data for any symbol
                 st.info(f"Generating demo data for {selected_symbol}...")
-                data_to_show = generate_demo_data_for_symbol(selected_symbol, time_period)
+                data_to_show = generate_demo_data_for_symbol(
+                    selected_symbol, time_period
+                )
 
     # Create charts if we have data
     if data_to_show is not None and PLOTLY_AVAILABLE:
-
         # Chart title with data source indicator
         chart_title = f"{selected_symbol} - {chart_type} ({data_source} Data)"
 
@@ -745,31 +862,48 @@ def display_risk_management():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        max_position = st.slider("Max Position Size (%)", 1, 25, 10, 1,
-                                help="Maximum percentage of portfolio per position")
+        max_position = st.slider(
+            "Max Position Size (%)",
+            1,
+            25,
+            10,
+            1,
+            help="Maximum percentage of portfolio per position",
+        )
 
     with col2:
-        stop_loss = st.slider("Stop Loss (%)", 1, 20, 5, 1,
-                             help="Automatic stop loss percentage")
+        stop_loss = st.slider(
+            "Stop Loss (%)", 1, 20, 5, 1, help="Automatic stop loss percentage"
+        )
 
     with col3:
-        take_profit = st.slider("Take Profit (%)", 5, 50, 15, 5,
-                               help="Automatic take profit percentage")
+        take_profit = st.slider(
+            "Take Profit (%)", 5, 50, 15, 5, help="Automatic take profit percentage"
+        )
 
     # Risk monitoring toggles
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        correlation_check = st.checkbox("📊 Correlation Monitoring", value=True,
-                                       help="Monitor portfolio correlation risk")
+        correlation_check = st.checkbox(
+            "📊 Correlation Monitoring",
+            value=True,
+            help="Monitor portfolio correlation risk",
+        )
 
     with col2:
-        volatility_control = st.checkbox("📈 Volatility Control", value=True,
-                                        help="Adjust position sizes based on volatility")
+        volatility_control = st.checkbox(
+            "📈 Volatility Control",
+            value=True,
+            help="Adjust position sizes based on volatility",
+        )
 
     with col3:
-        emergency_stop = st.checkbox("🚨 Emergency Stop Active", value=False,
-                                    help="Halt all trading on large losses")
+        emergency_stop = st.checkbox(
+            "🚨 Emergency Stop Active",
+            value=False,
+            help="Halt all trading on large losses",
+        )
 
     # Live risk metrics
     st.subheader("📊 Current Risk Assessment")
@@ -779,11 +913,14 @@ def display_risk_management():
     if st.session_state.demo_mode:
         # Enhanced demo risk metrics
         import random
+
         random.seed(42)  # Consistent demo data
 
         # Calculate dynamic risk metrics
         portfolio_risk = random.uniform(1.5, 4.5)
-        risk_color = "🟢" if portfolio_risk < 3 else "🟡" if portfolio_risk < 4 else "🔴"
+        risk_color = (
+            "🟢" if portfolio_risk < 3 else "🟡" if portfolio_risk < 4 else "🔴"
+        )
 
         volatility = random.uniform(0.15, 0.35)
         vol_color = "🟢" if volatility < 0.25 else "🟡" if volatility < 0.3 else "🔴"
@@ -795,20 +932,36 @@ def display_risk_management():
         dd_color = "🟢" if drawdown < 5 else "🟡" if drawdown < 10 else "🔴"
 
         with col1:
-            st.metric("Portfolio Risk", f"{risk_color} {portfolio_risk:.1f}%",
-                     delta=f"Target: <3%", help="Overall portfolio risk level")
+            st.metric(
+                "Portfolio Risk",
+                f"{risk_color} {portfolio_risk:.1f}%",
+                delta=f"Target: <3%",
+                help="Overall portfolio risk level",
+            )
 
         with col2:
-            st.metric("Volatility", f"{vol_color} {volatility:.1%}",
-                     delta=f"30-day avg", help="Portfolio volatility measure")
+            st.metric(
+                "Volatility",
+                f"{vol_color} {volatility:.1%}",
+                delta=f"30-day avg",
+                help="Portfolio volatility measure",
+            )
 
         with col3:
-            st.metric("Correlation Risk", f"{corr_color} {correlation:.2f}",
-                     delta=f"Diversification score", help="Asset correlation analysis")
+            st.metric(
+                "Correlation Risk",
+                f"{corr_color} {correlation:.2f}",
+                delta=f"Diversification score",
+                help="Asset correlation analysis",
+            )
 
         with col4:
-            st.metric("Max Drawdown", f"{dd_color} {drawdown:.1f}%",
-                     delta=f"Limit: 15%", help="Maximum portfolio decline")
+            st.metric(
+                "Max Drawdown",
+                f"{dd_color} {drawdown:.1f}%",
+                delta=f"Limit: 15%",
+                help="Maximum portfolio decline",
+            )
 
         # Risk breakdown by position
         st.subheader("🔍 Position Risk Analysis")
@@ -817,23 +970,31 @@ def display_risk_management():
 
         risk_data = []
         for symbol, pos in demo_positions.items():
-            position_value = pos['current_price'] * pos['quantity']
+            position_value = pos["current_price"] * pos["quantity"]
             portfolio_pct = (position_value / st.session_state.portfolio_value) * 100
 
             # Simulate risk metrics per position
             beta = random.uniform(0.7, 1.8)
             var_95 = random.uniform(2.5, 8.0)
 
-            risk_level = "🟢 Low" if portfolio_pct < 15 else "🟡 Medium" if portfolio_pct < 20 else "🔴 High"
+            risk_level = (
+                "🟢 Low"
+                if portfolio_pct < 15
+                else "🟡 Medium"
+                if portfolio_pct < 20
+                else "🔴 High"
+            )
 
-            risk_data.append({
-                "Symbol": symbol,
-                "Position Size": f"{portfolio_pct:.1f}%",
-                "Beta": f"{beta:.2f}",
-                "VaR (95%)": f"{var_95:.1f}%",
-                "Risk Level": risk_level,
-                "Action": "Monitor" if portfolio_pct < 20 else "Reduce"
-            })
+            risk_data.append(
+                {
+                    "Symbol": symbol,
+                    "Position Size": f"{portfolio_pct:.1f}%",
+                    "Beta": f"{beta:.2f}",
+                    "VaR (95%)": f"{var_95:.1f}%",
+                    "Risk Level": risk_level,
+                    "Action": "Monitor" if portfolio_pct < 20 else "Reduce",
+                }
+            )
 
         st.dataframe(risk_data, use_container_width=True)
 
@@ -847,7 +1008,10 @@ def display_risk_management():
             alerts.append("⚠️ High correlation detected - diversify holdings")
         if drawdown > 10:
             alerts.append("🚨 Drawdown exceeds 10% - review strategy")
-        if any(float(pos.split('%')[0]) > 20 for pos in [r["Position Size"] for r in risk_data]):
+        if any(
+            float(pos.split("%")[0]) > 20
+            for pos in [r["Position Size"] for r in risk_data]
+        ):
             alerts.append("⚠️ Position concentration risk - rebalance portfolio")
 
         if not alerts:
@@ -862,16 +1026,22 @@ def display_risk_management():
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            if st.button("📊 Run Risk Analysis", help="Comprehensive portfolio risk assessment"):
+            if st.button(
+                "📊 Run Risk Analysis", help="Comprehensive portfolio risk assessment"
+            ):
                 with st.spinner("Analyzing portfolio risk..."):
                     import time
+
                     time.sleep(2)
                     st.success("✅ Risk analysis complete - see alerts above")
 
         with col2:
-            if st.button("⚖️ Auto-Rebalance", help="Automatically rebalance based on risk rules"):
+            if st.button(
+                "⚖️ Auto-Rebalance", help="Automatically rebalance based on risk rules"
+            ):
                 with st.spinner("Rebalancing portfolio..."):
                     import time
+
                     time.sleep(2)
                     st.success("✅ Portfolio rebalanced within risk limits")
 
@@ -879,12 +1049,15 @@ def display_risk_management():
             if st.button("🚨 Emergency Hedge", help="Apply emergency hedging strategy"):
                 with st.spinner("Applying hedge positions..."):
                     import time
+
                     time.sleep(1.5)
                     st.success("✅ Emergency hedge positions applied")
 
         # Risk settings persistence
         if st.button("💾 Save Risk Settings", help="Save current risk parameters"):
-            st.info(f"✅ Risk settings saved - Max Position: {max_position}%, Stop Loss: {stop_loss}%, Take Profit: {take_profit}%")
+            st.info(
+                f"✅ Risk settings saved - Max Position: {max_position}%, Stop Loss: {stop_loss}%, Take Profit: {take_profit}%"
+            )
 
     else:
         # Live mode placeholders
@@ -909,24 +1082,35 @@ def display_trading_signals():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("🧠 Generate New Signals", help="Run ML models to generate fresh signals"):
+        if st.button(
+            "🧠 Generate New Signals", help="Run ML models to generate fresh signals"
+        ):
             with st.spinner("🤖 AI analyzing market patterns..."):
                 import time
+
                 time.sleep(3)  # Simulate ML processing
                 st.session_state.last_signal_time = datetime.now()
                 st.success("✅ Fresh signals generated!")
                 st.rerun()
 
     with col2:
-        auto_signals = st.checkbox("🔄 Auto-Generate",
-                                   value=st.session_state.trading_active,
-                                   help="Automatically generate signals every 15 minutes")
+        auto_signals = st.checkbox(
+            "🔄 Auto-Generate",
+            value=st.session_state.trading_active,
+            help="Automatically generate signals every 15 minutes",
+        )
         if auto_signals and not st.session_state.trading_active:
             st.info("Enable trading bot to activate auto-signals")
 
     with col3:
-        signal_threshold = st.slider("Signal Threshold", 0.1, 1.0, 0.6, 0.1,
-                                   help="Minimum confidence for signal alerts")
+        signal_threshold = st.slider(
+            "Signal Threshold",
+            0.1,
+            1.0,
+            0.6,
+            0.1,
+            help="Minimum confidence for signal alerts",
+        )
 
     # Last signal generation time
     if st.session_state.last_signal_time:
@@ -942,6 +1126,7 @@ def display_trading_signals():
 
         # Simulate dynamic signals based on current time
         import random
+
         random.seed(int(datetime.now().hour))  # Consistent but changing signals
 
         enhanced_signals = [
@@ -955,7 +1140,7 @@ def display_trading_signals():
                 "ML_Score": 8.5,
                 "Technical": "Bullish",
                 "Volume": "High",
-                "Reason": "Strong momentum + earnings beat"
+                "Reason": "Strong momentum + earnings beat",
             },
             {
                 "Symbol": "TSLA",
@@ -967,7 +1152,7 @@ def display_trading_signals():
                 "ML_Score": 9.1,
                 "Technical": "Bearish",
                 "Volume": "Very High",
-                "Reason": "Overbought conditions + resistance"
+                "Reason": "Overbought conditions + resistance",
             },
             {
                 "Symbol": "MSFT",
@@ -979,7 +1164,7 @@ def display_trading_signals():
                 "ML_Score": 6.2,
                 "Technical": "Neutral",
                 "Volume": "Medium",
-                "Reason": "Mixed signals, await direction"
+                "Reason": "Mixed signals, await direction",
             },
             {
                 "Symbol": "GOOGL",
@@ -991,12 +1176,14 @@ def display_trading_signals():
                 "ML_Score": 7.8,
                 "Technical": "Bullish",
                 "Volume": "High",
-                "Reason": "AI momentum + cloud growth"
-            }
+                "Reason": "AI momentum + cloud growth",
+            },
         ]
 
         # Filter by threshold
-        filtered_signals = [s for s in enhanced_signals if s["Confidence"] >= signal_threshold]
+        filtered_signals = [
+            s for s in enhanced_signals if s["Confidence"] >= signal_threshold
+        ]
 
         for signal in filtered_signals:
             # Dynamic styling based on signal type
@@ -1017,7 +1204,7 @@ def display_trading_signals():
                                background-color: {bg_color}; border-radius: 5px; margin: 10px 0;'>
                     </div>
                     """,
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
 
                 col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
@@ -1027,9 +1214,18 @@ def display_trading_signals():
                     st.markdown(f"*{signal['Reason']}*")
 
                 with col2:
-                    confidence_color = "green" if signal["Confidence"] > 0.7 else "orange" if signal["Confidence"] > 0.5 else "red"
-                    st.markdown(f"**Confidence:** <span style='color: {confidence_color}'>{signal['Confidence']:.1%}</span>", unsafe_allow_html=True)
-                    st.markdown(f"**ML Score:** {signal['ML_Score']}/10"
+                    confidence_color = (
+                        "green"
+                        if signal["Confidence"] > 0.7
+                        else "orange"
+                        if signal["Confidence"] > 0.5
+                        else "red"
+                    )
+                    st.markdown(
+                        f"**Confidence:** <span style='color: {confidence_color}'>{signal['Confidence']:.1%}</span>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(f"**ML Score:** {signal['ML_Score']}/10")
 
                 with col3:
                     st.markdown(f"**Current:** {signal['Price']}")
@@ -1042,9 +1238,14 @@ def display_trading_signals():
 
                     # Action button
                     if signal["Confidence"] >= 0.7:
-                        if st.button(f"Execute {signal['Signal']}", key=f"exec_{signal['Symbol']}",
-                                   help=f"Place {signal['Signal']} order for {signal['Symbol']}"):
-                            st.success(f" {signal['Signal']} order placed for {signal['Symbol']}")
+                        if st.button(
+                            f"Execute {signal['Signal']}",
+                            key=f"exec_{signal['Symbol']}",
+                            help=f"Place {signal['Signal']} order for {signal['Symbol']}",
+                        ):
+                            st.success(
+                                f" {signal['Signal']} order placed for {signal['Symbol']}"
+                            )
 
         # Signal summary statistics
         st.markdown("---")
@@ -1063,7 +1264,11 @@ def display_trading_signals():
             st.metric("🟡 HOLD Signals", hold_signals)
 
         with col4:
-            avg_confidence = sum(s["Confidence"] for s in filtered_signals) / len(filtered_signals) if filtered_signals else 0
+            avg_confidence = (
+                sum(s["Confidence"] for s in filtered_signals) / len(filtered_signals)
+                if filtered_signals
+                else 0
+            )
             st.metric("📊 Avg Confidence", f"{avg_confidence:.1%}")
 
     else:
@@ -1075,13 +1280,13 @@ def create_performance_chart():
     if not PLOTLY_AVAILABLE:
         return None
 
+    import numpy as np
+    import pandas as pd
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
-    import pandas as pd
-    import numpy as np
 
     # Generate sample performance data
-    dates = pd.date_range(start='2024-01-01', end='2024-10-11', freq='D')
+    dates = pd.date_range(start="2024-01-01", end="2024-10-11", freq="D")
     np.random.seed(42)
 
     # Simulate portfolio performance
@@ -1100,62 +1305,71 @@ def create_performance_chart():
 
     # Create subplot with secondary y-axis
     fig = make_subplots(
-        rows=2, cols=1,
-        subplot_titles=('Portfolio Performance vs S&P 500', 'Daily Returns'),
+        rows=2,
+        cols=1,
+        subplot_titles=("Portfolio Performance vs S&P 500", "Daily Returns"),
         row_heights=[0.7, 0.3],
-        shared_xaxes=True
+        shared_xaxes=True,
     )
 
     # Portfolio value line
     fig.add_trace(
         go.Scatter(
-            x=dates, y=portfolio_values,
-            name='AI Trading Bot',
-            line=dict(color='#00D4AA', width=3),
-            hovertemplate='<b>%{fullData.name}</b><br>Date: %{x}<br>Value: $%{y:,.0f}<extra></extra>'
+            x=dates,
+            y=portfolio_values,
+            name="AI Trading Bot",
+            line=dict(color="#00D4AA", width=3),
+            hovertemplate="<b>%{fullData.name}</b><br>Date: %{x}<br>Value: $%{y:,.0f}<extra></extra>",
         ),
-        row=1, col=1
+        row=1,
+        col=1,
     )
 
     # Benchmark line
     fig.add_trace(
         go.Scatter(
-            x=dates, y=benchmark_values,
-            name='S&P 500 Benchmark',
-            line=dict(color='#FF6B6B', width=2, dash='dash'),
-            hovertemplate='<b>%{fullData.name}</b><br>Date: %{x}<br>Value: $%{y:,.0f}<extra></extra>'
+            x=dates,
+            y=benchmark_values,
+            name="S&P 500 Benchmark",
+            line=dict(color="#FF6B6B", width=2, dash="dash"),
+            hovertemplate="<b>%{fullData.name}</b><br>Date: %{x}<br>Value: $%{y:,.0f}<extra></extra>",
         ),
-        row=1, col=1
+        row=1,
+        col=1,
     )
 
     # Daily returns bar chart
-    daily_returns = [(portfolio_values[i] / portfolio_values[i-1] - 1) * 100
-                     for i in range(1, len(portfolio_values))]
+    daily_returns = [
+        (portfolio_values[i] / portfolio_values[i - 1] - 1) * 100
+        for i in range(1, len(portfolio_values))
+    ]
 
-    colors = ['green' if ret > 0 else 'red' for ret in daily_returns]
+    colors = ["green" if ret > 0 else "red" for ret in daily_returns]
 
     fig.add_trace(
         go.Bar(
-            x=dates[1:], y=daily_returns,
-            name='Daily Returns (%)',
+            x=dates[1:],
+            y=daily_returns,
+            name="Daily Returns (%)",
             marker_color=colors,
             opacity=0.7,
-            hovertemplate='<b>Daily Return</b><br>Date: %{x}<br>Return: %{y:.2f}%<extra></extra>'
+            hovertemplate="<b>Daily Return</b><br>Date: %{x}<br>Return: %{y:.2f}%<extra></extra>",
         ),
-        row=2, col=1
+        row=2,
+        col=1,
     )
 
     # Update layout
     fig.update_layout(
         height=600,
         showlegend=True,
-        hovermode='x unified',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
+        hovermode="x unified",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
     )
 
-    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
-    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.2)")
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.2)")
 
     return fig
 
@@ -1186,8 +1400,11 @@ def display_trading_engine():
     with col1:
         # Start/Stop Controls
         if status["state"] in ["stopped", "error"]:
-            if st.button("🚀 Start Trading Engine", type="primary",
-                        help="Start the automated trading engine"):
+            if st.button(
+                "🚀 Start Trading Engine",
+                type="primary",
+                help="Start the automated trading engine",
+            ):
                 if "trading_engine" in st.session_state:
                     with st.spinner("Starting trading engine..."):
                         result = st.session_state.trading_engine.start_trading()
@@ -1199,8 +1416,11 @@ def display_trading_engine():
                             st.error(f"❌ {result['message']}")
 
         elif status["state"] == "running":
-            if st.button("🛑 Stop Trading Engine", type="secondary",
-                        help="Stop the automated trading engine"):
+            if st.button(
+                "🛑 Stop Trading Engine",
+                type="secondary",
+                help="Stop the automated trading engine",
+            ):
                 if "trading_engine" in st.session_state:
                     with st.spinner("Stopping trading engine..."):
                         result = st.session_state.trading_engine.stop_trading()
@@ -1241,8 +1461,11 @@ def display_trading_engine():
 
     with col1:
         state_colors = {
-            "stopped": "🔴", "starting": "🟡", "running": "🟢",
-            "paused": "🟡", "error": "❌"
+            "stopped": "🔴",
+            "starting": "🟡",
+            "running": "🟢",
+            "paused": "🟡",
+            "error": "❌",
         }
         state_color = state_colors.get(status["state"], "⚪")
         st.metric("Engine State", f"{state_color} {status['state'].title()}")
@@ -1273,17 +1496,19 @@ def display_trading_engine():
             if positions:
                 positions_df = []
                 for pos in positions:
-                    positions_df.append({
-                        "Symbol": pos["symbol"],
-                        "Quantity": pos["quantity"],
-                        "Entry Price": f"${pos['entry_price']:.2f}",
-                        "Current Price": f"${pos['current_price']:.2f}",
-                        "P&L": f"${pos['pnl']:+,.2f}",
-                        "P&L %": f"{pos['pnl_pct']:+.1f}%",
-                        "Entry Time": pos["entry_time"][:19],  # Remove microseconds
-                        "Stop Loss": f"${pos['stop_loss']:.2f}",
-                        "Take Profit": f"${pos['take_profit']:.2f}"
-                    })
+                    positions_df.append(
+                        {
+                            "Symbol": pos["symbol"],
+                            "Quantity": pos["quantity"],
+                            "Entry Price": f"${pos['entry_price']:.2f}",
+                            "Current Price": f"${pos['current_price']:.2f}",
+                            "P&L": f"${pos['pnl']:+,.2f}",
+                            "P&L %": f"{pos['pnl_pct']:+.1f}%",
+                            "Entry Time": pos["entry_time"][:19],  # Remove microseconds
+                            "Stop Loss": f"${pos['stop_loss']:.2f}",
+                            "Take Profit": f"${pos['take_profit']:.2f}",
+                        }
+                    )
 
                 st.dataframe(positions_df, use_container_width=True)
             else:
@@ -1297,18 +1522,22 @@ def display_trading_engine():
         st.subheader("📡 Recent Signals")
 
         try:
-            recent_signals = st.session_state.trading_engine.get_recent_signals(limit=10)
+            recent_signals = st.session_state.trading_engine.get_recent_signals(
+                limit=10
+            )
 
             if recent_signals:
                 signals_df = []
                 for signal in recent_signals[-5:]:  # Show last 5
-                    signals_df.append({
-                        "Time": signal["timestamp"][:19],
-                        "Symbol": signal["symbol"],
-                        "Signal": signal["signal"],
-                        "Confidence": f"{signal['confidence']:.1%}",
-                        "Price": f"${signal['price']:.2f}"
-                    })
+                    signals_df.append(
+                        {
+                            "Time": signal["timestamp"][:19],
+                            "Symbol": signal["symbol"],
+                            "Signal": signal["signal"],
+                            "Confidence": f"{signal['confidence']:.1%}",
+                            "Price": f"${signal['price']:.2f}",
+                        }
+                    )
 
                 st.dataframe(signals_df, use_container_width=True)
             else:
@@ -1328,37 +1557,47 @@ def display_trading_engine():
                 "Trading Symbols",
                 options=TRADING_SYMBOLS,
                 default=TRADING_SYMBOLS[:5],
-                help="Select symbols for automated trading"
+                help="Select symbols for automated trading",
             )
 
             max_positions = st.slider(
-                "Max Positions", 1, 10, 5,
-                help="Maximum number of simultaneous positions"
+                "Max Positions",
+                1,
+                10,
+                5,
+                help="Maximum number of simultaneous positions",
             )
 
             position_size = st.slider(
-                "Position Size (%)", 5, 50, 20,
-                help="Percentage of portfolio per position"
+                "Position Size (%)",
+                5,
+                50,
+                20,
+                help="Percentage of portfolio per position",
             )
 
         with col2:
             stop_loss = st.slider(
-                "Stop Loss (%)", 1, 15, 5,
-                help="Automatic stop loss percentage"
+                "Stop Loss (%)", 1, 15, 5, help="Automatic stop loss percentage"
             )
 
             take_profit = st.slider(
-                "Take Profit (%)", 5, 50, 15,
-                help="Automatic take profit percentage"
+                "Take Profit (%)", 5, 50, 15, help="Automatic take profit percentage"
             )
 
             signal_threshold = st.slider(
-                "Signal Threshold", 0.1, 1.0, 0.6, 0.1,
-                help="Minimum confidence for signal execution"
+                "Signal Threshold",
+                0.1,
+                1.0,
+                0.6,
+                0.1,
+                help="Minimum confidence for signal execution",
             )
 
         # Update configuration button
-        if st.button("💾 Update Configuration", help="Apply new settings to trading engine"):
+        if st.button(
+            "💾 Update Configuration", help="Apply new settings to trading engine"
+        ):
             if "trading_engine" in st.session_state:
                 new_config = {
                     "symbols": symbols,
@@ -1366,7 +1605,7 @@ def display_trading_engine():
                     "position_size_pct": position_size / 100,
                     "stop_loss_pct": stop_loss / 100,
                     "take_profit_pct": take_profit / 100,
-                    "signal_threshold": signal_threshold
+                    "signal_threshold": signal_threshold,
                 }
 
                 result = st.session_state.trading_engine.update_config(new_config)
@@ -1396,7 +1635,9 @@ def display_real_time_monitoring():
 
     if not MONITORING_SYSTEM_LOADED:
         st.error("❌ Real-Time Monitoring System not available")
-        st.info("The monitoring system requires additional dependencies and proper imports.")
+        st.info(
+            "The monitoring system requires additional dependencies and proper imports."
+        )
         return
 
     if "monitor" not in st.session_state:
@@ -1412,9 +1653,11 @@ def display_real_time_monitoring():
 
     with col1:
         # Start/Stop Monitoring
-        if st.button("🚀 Start Monitoring",
-                    disabled=st.session_state.monitoring_active,
-                    help="Start real-time monitoring"):
+        if st.button(
+            "🚀 Start Monitoring",
+            disabled=st.session_state.monitoring_active,
+            help="Start real-time monitoring",
+        ):
             try:
                 result = monitor.start_monitoring()
                 if result["success"]:
@@ -1427,9 +1670,11 @@ def display_real_time_monitoring():
                 st.error(f"❌ Failed to start monitoring: {e}")
 
     with col2:
-        if st.button("⏹️ Stop Monitoring",
-                    disabled=not st.session_state.monitoring_active,
-                    help="Stop real-time monitoring"):
+        if st.button(
+            "⏹️ Stop Monitoring",
+            disabled=not st.session_state.monitoring_active,
+            help="Stop real-time monitoring",
+        ):
             try:
                 result = monitor.stop_monitoring()
                 if result["success"]:
@@ -1497,7 +1742,10 @@ def display_real_time_monitoring():
                 else:
                     alert_class = "⚪"
 
-                with st.expander(f"{alert_class} {title}", expanded=level in ["critical", "emergency"]):
+                with st.expander(
+                    f"{alert_class} {title}",
+                    expanded=level in ["critical", "emergency"],
+                ):
                     st.write(f"**Level:** {level.upper()}")
                     st.write(f"**Type:** {alert_type}")
                     st.write(f"**Time:** {timestamp}")
@@ -1527,8 +1775,10 @@ def display_real_time_monitoring():
             with col1:
                 unrealized_pnl = current_metrics.get("unrealized_pnl", 0)
                 pnl_color = "green" if unrealized_pnl >= 0 else "red"
-                st.markdown(f"**Unrealized P&L:** <span style='color: {pnl_color}'>${unrealized_pnl:+,.2f}</span>",
-                           unsafe_allow_html=True)
+                st.markdown(
+                    f"**Unrealized P&L:** <span style='color: {pnl_color}'>${unrealized_pnl:+,.2f}</span>",
+                    unsafe_allow_html=True,
+                )
 
             with col2:
                 win_rate = current_metrics.get("win_rate", 0)
@@ -1554,9 +1804,15 @@ def display_real_time_monitoring():
                     from plotly.subplots import make_subplots
 
                     fig = make_subplots(
-                        rows=2, cols=2,
-                        subplot_titles=("Portfolio Value", "P&L", "Position Count", "Drawdown"),
-                        vertical_spacing=0.08
+                        rows=2,
+                        cols=2,
+                        subplot_titles=(
+                            "Portfolio Value",
+                            "P&L",
+                            "Position Count",
+                            "Drawdown",
+                        ),
+                        vertical_spacing=0.08,
                     )
 
                     timestamps = trends["timestamps"]
@@ -1567,9 +1823,10 @@ def display_real_time_monitoring():
                             x=timestamps,
                             y=trends.get("portfolio_values", []),
                             name="Portfolio Value",
-                            line=dict(color="blue")
+                            line=dict(color="blue"),
                         ),
-                        row=1, col=1
+                        row=1,
+                        col=1,
                     )
 
                     # P&L
@@ -1581,9 +1838,10 @@ def display_real_time_monitoring():
                             y=pnl_values,
                             name="P&L",
                             line=dict(color="green"),
-                            fill="tozeroy"
+                            fill="tozeroy",
                         ),
-                        row=1, col=2
+                        row=1,
+                        col=2,
                     )
 
                     # Position count
@@ -1592,9 +1850,10 @@ def display_real_time_monitoring():
                             x=timestamps,
                             y=trends.get("position_counts", []),
                             name="Position Count",
-                            line=dict(color="orange")
+                            line=dict(color="orange"),
                         ),
-                        row=2, col=1
+                        row=2,
+                        col=1,
                     )
 
                     # Drawdown (if available)
@@ -1605,15 +1864,16 @@ def display_real_time_monitoring():
                                 y=trends.get("drawdown_values", []),
                                 name="Drawdown",
                                 line=dict(color="red"),
-                                fill="tozeroy"
+                                fill="tozeroy",
                             ),
-                            row=2, col=2
+                            row=2,
+                            col=2,
                         )
 
                     fig.update_layout(
                         title="Real-Time Performance Monitoring",
                         height=600,
-                        showlegend=False
+                        showlegend=False,
                     )
 
                     st.plotly_chart(fig, use_container_width=True)
@@ -1621,7 +1881,9 @@ def display_real_time_monitoring():
                 except Exception as e:
                     st.error(f"Failed to create performance chart: {e}")
             else:
-                st.info("📊 Performance trend data will appear here as monitoring collects data")
+                st.info(
+                    "📊 Performance trend data will appear here as monitoring collects data"
+                )
 
         # Recent Alerts History
         st.subheader("📜 Recent Alert History")
@@ -1632,18 +1894,22 @@ def display_real_time_monitoring():
             # Create a table of recent alerts
             alert_data = []
             for alert in recent_alerts[-10:]:  # Last 10 alerts
-                alert_data.append({
-                    "Time": alert["timestamp"].split("T")[1][:8],  # Just time part
-                    "Level": alert["level"].upper(),
-                    "Type": alert["alert_type"],
-                    "Title": alert["title"],
-                    "Status": "✅ Resolved" if alert["resolved"] else "🟡 Active"
-                })
+                alert_data.append(
+                    {
+                        "Time": alert["timestamp"].split("T")[1][:8],  # Just time part
+                        "Level": alert["level"].upper(),
+                        "Type": alert["alert_type"],
+                        "Title": alert["title"],
+                        "Status": "✅ Resolved" if alert["resolved"] else "🟡 Active",
+                    }
+                )
 
             df_alerts = pd.DataFrame(alert_data)
             st.dataframe(df_alerts, use_container_width=True, hide_index=True)
         else:
-            st.info("📜 Alert history will appear here as the monitoring system generates alerts")
+            st.info(
+                "📜 Alert history will appear here as the monitoring system generates alerts"
+            )
 
         # System Health Check
         st.subheader("🏥 System Health")
@@ -1676,14 +1942,22 @@ def display_real_time_monitoring():
 
             with col1:
                 st.write("**Alert Thresholds:**")
-                st.write(f"• P&L Warning: {config_info.get('pnl_warning_threshold', 0.05):.1%}")
-                st.write(f"• P&L Critical: {config_info.get('pnl_critical_threshold', 0.10):.1%}")
-                st.write(f"• Position Size Warning: {config_info.get('position_size_warning', 0.25):.1%}")
+                st.write(
+                    f"• P&L Warning: {config_info.get('pnl_warning_threshold', 0.05):.1%}"
+                )
+                st.write(
+                    f"• P&L Critical: {config_info.get('pnl_critical_threshold', 0.10):.1%}"
+                )
+                st.write(
+                    f"• Position Size Warning: {config_info.get('position_size_warning', 0.25):.1%}"
+                )
 
             with col2:
                 st.write("**Notification Settings:**")
-                email_enabled = config_info.get('email_alerts_enabled', False)
-                st.write(f"• Email Alerts: {'✅ Enabled' if email_enabled else '❌ Disabled'}")
+                email_enabled = config_info.get("email_alerts_enabled", False)
+                st.write(
+                    f"• Email Alerts: {'✅ Enabled' if email_enabled else '❌ Disabled'}"
+                )
                 st.write("• Database Storage: ✅ Enabled")
                 st.write("• Real-time Updates: ✅ Enabled")
 
@@ -1696,11 +1970,15 @@ def display_stock_screener():
     """Display stock growth screener dashboard"""
 
     st.header("🔎 Stock Growth Screener")
-    st.markdown("**Identify high-growth opportunities using advanced technical analysis, momentum indicators, and ML predictions**")
+    st.markdown(
+        "**Identify high-growth opportunities using advanced technical analysis, momentum indicators, and ML predictions**"
+    )
 
     if not SCREENER_LOADED:
         st.error("❌ Stock Growth Screener not available")
-        st.info("The screener system requires additional dependencies and proper imports.")
+        st.info(
+            "The screener system requires additional dependencies and proper imports."
+        )
         return
 
     if "screener" not in st.session_state:
@@ -1716,9 +1994,11 @@ def display_stock_screener():
 
     with col1:
         # Run Full Scan
-        if st.button("🚀 Run Full Scan",
-                    help="Scan all stocks for growth opportunities",
-                    type="primary"):
+        if st.button(
+            "🚀 Run Full Scan",
+            help="Scan all stocks for growth opportunities",
+            type="primary",
+        ):
             with st.spinner("🔍 Scanning stocks for growth opportunities..."):
                 try:
                     results = screener.run_full_scan()
@@ -1737,7 +2017,9 @@ def display_stock_screener():
     with col3:
         # Configuration
         if st.button("⚙️ Settings", help="Screener configuration"):
-            st.session_state.show_screener_config = not st.session_state.get("show_screener_config", False)
+            st.session_state.show_screener_config = not st.session_state.get(
+                "show_screener_config", False
+            )
             st.rerun()
 
     # Configuration Panel (if enabled)
@@ -1747,14 +2029,55 @@ def display_stock_screener():
 
             col1, col2 = st.columns(2)
             with col1:
-                st.slider("Minimum Momentum Score", 0.0, 1.0, 0.6, 0.1, help="Minimum momentum requirement")
-                st.slider("Volume Surge Threshold", 1.0, 5.0, 1.5, 0.1, help="Volume increase multiplier")
-                st.slider("Technical Score Minimum", 0.0, 1.0, 0.5, 0.1, help="Technical analysis threshold")
+                st.slider(
+                    "Minimum Momentum Score",
+                    0.0,
+                    1.0,
+                    0.6,
+                    0.1,
+                    help="Minimum momentum requirement",
+                )
+                st.slider(
+                    "Volume Surge Threshold",
+                    1.0,
+                    5.0,
+                    1.5,
+                    0.1,
+                    help="Volume increase multiplier",
+                )
+                st.slider(
+                    "Technical Score Minimum",
+                    0.0,
+                    1.0,
+                    0.5,
+                    0.1,
+                    help="Technical analysis threshold",
+                )
 
             with col2:
-                st.slider("Max Volatility", 0.1, 1.0, 0.6, 0.1, help="Maximum acceptable volatility")
-                st.slider("RSI Recovery Level", 20.0, 50.0, 35.0, 5.0, help="RSI oversold recovery level")
-                st.number_input("Min Daily Volume ($)", 100000, 10000000, 1000000, help="Minimum liquidity")
+                st.slider(
+                    "Max Volatility",
+                    0.1,
+                    1.0,
+                    0.6,
+                    0.1,
+                    help="Maximum acceptable volatility",
+                )
+                st.slider(
+                    "RSI Recovery Level",
+                    20.0,
+                    50.0,
+                    35.0,
+                    5.0,
+                    help="RSI oversold recovery level",
+                )
+                st.number_input(
+                    "Min Daily Volume ($)",
+                    100000,
+                    10000000,
+                    1000000,
+                    help="Minimum liquidity",
+                )
 
     # Scan Status and Summary
     st.subheader("📊 Screening Status")
@@ -1766,7 +2089,7 @@ def display_stock_screener():
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            st.metric("Last Scan", f"{time_ago.seconds//60} min ago")
+            st.metric("Last Scan", f"{time_ago.seconds // 60} min ago")
 
         with col2:
             scan_results = st.session_state.get("scan_results", {})
@@ -1779,7 +2102,11 @@ def display_stock_screener():
 
         with col4:
             if scan_results:
-                explosive_growth = [r for r in scan_results.values() if r.growth_category.value == "explosive_growth"]
+                explosive_growth = [
+                    r
+                    for r in scan_results.values()
+                    if r.growth_category.value == "explosive_growth"
+                ]
                 st.metric("Explosive Growth", len(explosive_growth))
     else:
         st.info("📊 No recent scans available. Run a full scan to get started!")
@@ -1798,8 +2125,16 @@ def display_stock_screener():
             min_score = st.slider("Minimum Score", 0.0, 1.0, 0.6, 0.1)
 
         with col2:
-            category_filter = st.selectbox("Growth Category",
-                ["All", "Explosive Growth", "High Growth", "Moderate Growth", "Stable Growth"])
+            category_filter = st.selectbox(
+                "Growth Category",
+                [
+                    "All",
+                    "Explosive Growth",
+                    "High Growth",
+                    "Moderate Growth",
+                    "Stable Growth",
+                ],
+            )
 
         with col3:
             max_results = st.number_input("Max Results", 5, 50, 20)
@@ -1810,7 +2145,10 @@ def display_stock_screener():
             if result.score >= min_score:
                 if category_filter == "All":
                     filtered_results.append(result)
-                elif category_filter.lower().replace(" ", "_") == result.growth_category.value:
+                elif (
+                    category_filter.lower().replace(" ", "_")
+                    == result.growth_category.value
+                ):
                     filtered_results.append(result)
 
         # Sort by score
@@ -1827,27 +2165,35 @@ def display_stock_screener():
                     "high_growth": "📈",
                     "moderate_growth": "📊",
                     "stable_growth": "💹",
-                    "low_growth": "📉"
+                    "low_growth": "📉",
                 }
                 category_emoji = category_emojis.get(result.growth_category.value, "📊")
 
                 # Calculate potential return
                 potential_return = ""
                 if result.target_price and result.current_price > 0:
-                    return_pct = (result.target_price - result.current_price) / result.current_price
+                    return_pct = (
+                        result.target_price - result.current_price
+                    ) / result.current_price
                     potential_return = f"{return_pct:.1%}"
 
-                table_data.append({
-                    "Symbol": result.symbol,
-                    "Score": f"{result.score:.3f}",
-                    "Category": f"{category_emoji} {result.growth_category.value.replace('_', ' ').title()}",
-                    "Price": f"${result.current_price:.2f}",
-                    "Target": f"${result.target_price:.2f}" if result.target_price else "-",
-                    "Potential": potential_return,
-                    "RSI": f"{result.rsi:.1f}" if result.rsi else "-",
-                    "MACD": result.macd_signal or "-",
-                    "Volume Ratio": f"{result.volume_ratio:.1f}x" if result.volume_ratio else "-"
-                })
+                table_data.append(
+                    {
+                        "Symbol": result.symbol,
+                        "Score": f"{result.score:.3f}",
+                        "Category": f"{category_emoji} {result.growth_category.value.replace('_', ' ').title()}",
+                        "Price": f"${result.current_price:.2f}",
+                        "Target": f"${result.target_price:.2f}"
+                        if result.target_price
+                        else "-",
+                        "Potential": potential_return,
+                        "RSI": f"{result.rsi:.1f}" if result.rsi else "-",
+                        "MACD": result.macd_signal or "-",
+                        "Volume Ratio": f"{result.volume_ratio:.1f}x"
+                        if result.volume_ratio
+                        else "-",
+                    }
+                )
 
             df_results = pd.DataFrame(table_data)
             st.dataframe(df_results, use_container_width=True, hide_index=True)
@@ -1862,7 +2208,9 @@ def display_stock_screener():
 
                 with col1:
                     st.markdown(f"### {top_pick.symbol}")
-                    st.markdown(f"**Score:** {top_pick.score:.3f} | **Category:** {top_pick.growth_category.value.replace('_', ' ').title()}")
+                    st.markdown(
+                        f"**Score:** {top_pick.score:.3f} | **Category:** {top_pick.growth_category.value.replace('_', ' ').title()}"
+                    )
 
                     # Key metrics
                     metrics_col1, metrics_col2, metrics_col3 = st.columns(3)
@@ -1880,7 +2228,9 @@ def display_stock_screener():
 
                     with metrics_col3:
                         if top_pick.target_price:
-                            upside = (top_pick.target_price - top_pick.current_price) / top_pick.current_price
+                            upside = (
+                                top_pick.target_price - top_pick.current_price
+                            ) / top_pick.current_price
                             st.metric("Upside Potential", f"{upside:.1%}")
                         if top_pick.volume_ratio:
                             st.metric("Volume Surge", f"{top_pick.volume_ratio:.1f}x")
@@ -1893,18 +2243,31 @@ def display_stock_screener():
                         "Technical": top_pick.technical_score,
                         "Momentum": top_pick.momentum_score,
                         "Volume": top_pick.volume_score,
-                        "ML Prediction": top_pick.ml_prediction
+                        "ML Prediction": top_pick.ml_prediction,
                     }
 
                     for component, score in score_data.items():
-                        color = "green" if score > 0.6 else "orange" if score > 0.3 else "red"
-                        st.markdown(f"• **{component}:** <span style='color: {color}'>{score:.3f}</span>",
-                                  unsafe_allow_html=True)
+                        color = (
+                            "green"
+                            if score > 0.6
+                            else "orange"
+                            if score > 0.3
+                            else "red"
+                        )
+                        st.markdown(
+                            f"• **{component}:** <span style='color: {color}'>{score:.3f}</span>",
+                            unsafe_allow_html=True,
+                        )
 
                 # Criteria Met
                 if top_pick.criteria_met:
                     st.markdown("**✅ Criteria Met:**")
-                    criteria_text = ", ".join([c.value.replace('_', ' ').title() for c in top_pick.criteria_met])
+                    criteria_text = ", ".join(
+                        [
+                            c.value.replace("_", " ").title()
+                            for c in top_pick.criteria_met
+                        ]
+                    )
                     st.success(criteria_text)
 
                 # Risk Factors
@@ -1914,7 +2277,9 @@ def display_stock_screener():
                         st.warning(f"• {risk}")
 
         else:
-            st.info(f"📊 No results match the current filters (minimum score: {min_score:.1f})")
+            st.info(
+                f"📊 No results match the current filters (minimum score: {min_score:.1f})"
+            )
 
         # Category Breakdown Chart
         if PLOTLY_AVAILABLE and results:
@@ -1922,31 +2287,33 @@ def display_stock_screener():
 
             category_counts = defaultdict(int)
             for result in results.values():
-                category_counts[result.growth_category.value] = category_counts.get(result.growth_category.value, 0) + 1
+                category_counts[result.growth_category.value] = (
+                    category_counts.get(result.growth_category.value, 0) + 1
+                )
 
             try:
                 import plotly.graph_objects as go
 
-                labels = [cat.replace('_', ' ').title() for cat in category_counts.keys()]
+                labels = [
+                    cat.replace("_", " ").title() for cat in category_counts.keys()
+                ]
                 values = list(category_counts.values())
 
-                colors = ['#ff4444', '#ff8800', '#ffcc00', '#88cc00', '#00cc88']
+                colors = ["#ff4444", "#ff8800", "#ffcc00", "#88cc00", "#00cc88"]
 
-                fig = go.Figure(data=[go.Pie(
-                    labels=labels,
-                    values=values,
-                    marker_colors=colors,
-                    hole=0.3
-                )])
-
-                fig.update_layout(
-                    title="Growth Stock Distribution",
-                    height=400
+                fig = go.Figure(
+                    data=[
+                        go.Pie(
+                            labels=labels, values=values, marker_colors=colors, hole=0.3
+                        )
+                    ]
                 )
+
+                fig.update_layout(title="Growth Stock Distribution", height=400)
 
                 st.plotly_chart(fig, use_container_width=True)
 
-                       except Exception as e:
+            except Exception as e:
                 st.error(f"Failed to create distribution chart: {e}")
 
         # Performance Statistics
@@ -1971,15 +2338,29 @@ def display_stock_screener():
                 st.metric("High Potential (>0.7)", high_potential)
 
     else:
-        st.info("🔍 No screening results available yet. Click 'Run Full Scan' to get started!")
+        st.info(
+            "🔍 No screening results available yet. Click 'Run Full Scan' to get started!"
+        )
 
         # Sample stocks preview
         st.subheader("📋 Sample Screening Universe")
         st.markdown("The screener will analyze these stocks and many more:")
 
         sample_stocks = [
-            "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
-            "SHOP", "SQ", "ROKU", "ZOOM", "SNOW", "PLTR"
+            "AAPL",
+            "MSFT",
+            "GOOGL",
+            "AMZN",
+            "TSLA",
+            "NVDA",
+            "META",
+            "NFLX",
+            "SHOP",
+            "SQ",
+            "ROKU",
+            "ZOOM",
+            "SNOW",
+            "PLTR",
         ]
 
         cols = st.columns(7)
@@ -2029,7 +2410,7 @@ def display_performance_analytics():
             "Strategy": ["Momentum", "Mean Reversion", "ML Ensemble", "Risk Parity"],
             "Allocation": ["35%", "25%", "30%", "10%"],
             "Return": ["15.2%", "8.7%", "18.5%", "6.1%"],
-            "Trades": [45, 32, 38, 12]
+            "Trades": [45, 32, 38, 12],
         }
         st.dataframe(strategy_data, use_container_width=True, hide_index=True)
 
@@ -2039,7 +2420,7 @@ def display_performance_analytics():
             "Month": ["Aug 2024", "Sep 2024", "Oct 2024"],
             "Return": ["2.3%", "1.8%", "3.1%"],
             "Benchmark": ["1.5%", "0.9%", "2.2%"],
-            "Alpha": ["+0.8%", "+0.9%", "+0.9%"]
+            "Alpha": ["+0.8%", "+0.9%", "+0.9%"],
         }
         st.dataframe(monthly_data, use_container_width=True, hide_index=True)
 
@@ -2077,17 +2458,28 @@ def main():
     with st.sidebar:
         st.markdown("---")
         # Navigation options based on available features
-        nav_options = ["📊 Dashboard", "💼 Portfolio", "📈 Market Data", "⚠️ Risk Management", "📡 Trading Signals", "🏆 Performance"]
+        nav_options = [
+            "📊 Dashboard",
+            "💼 Portfolio",
+            "📈 Market Data",
+            "⚠️ Risk Management",
+            "📡 Trading Signals",
+            "🏆 Performance",
+        ]
 
         # Add Small Account option if available
         if MODULES_LOADED["small_account"]:
             nav_options.insert(1, "💰 Small Account")  # Insert after Dashboard
 
         if TRADING_ENGINE_LOADED:
-            nav_options.insert(-1, "🤖 Live Trading Engine")  # Insert before Performance
+            nav_options.insert(
+                -1, "🤖 Live Trading Engine"
+            )  # Insert before Performance
 
         if MONITORING_SYSTEM_LOADED:
-            nav_options.insert(-1, "🔍 Real-Time Monitoring")  # Insert before Performance
+            nav_options.insert(
+                -1, "🔍 Real-Time Monitoring"
+            )  # Insert before Performance
 
         if SCREENER_LOADED:
             nav_options.insert(-1, "🔎 Stock Screener")  # Insert before Performance
@@ -2103,9 +2495,14 @@ def main():
             total_pnl = sum(pos["pnl"] for pos in demo_positions.values())
             pnl_color = "green" if total_pnl >= 0 else "red"
 
-            st.markdown(f"**P&L Today:** <span style='color: {pnl_color}'>${total_pnl:+,.2f}</span>", unsafe_allow_html=True)
+            st.markdown(
+                f"**P&L Today:** <span style='color: {pnl_color}'>${total_pnl:+,.2f}</span>",
+                unsafe_allow_html=True,
+            )
             st.markdown(f"**Active Trades:** {len(demo_positions)}")
-            st.markdown(f"**Bot Status:** {'🟢 Active' if st.session_state.trading_active else '🔴 Stopped'}")
+            st.markdown(
+                f"**Bot Status:** {'🟢 Active' if st.session_state.trading_active else '🔴 Stopped'}"
+            )
 
         # Quick actions
         st.markdown("---")
@@ -2171,18 +2568,21 @@ def main():
                 notification_placeholder = st.empty()
 
                 import random
+
                 notifications = [
                     "📈 AAPL position +2.1% - consider profit taking",
                     "⚠️ TSLA approaching stop loss level",
                     "🔔 New BUY signal generated for MSFT",
                     "📊 Portfolio rebalancing recommended",
-                    "✅ Risk levels within targets"
+                    "✅ Risk levels within targets",
                 ]
 
                 random.seed(int(datetime.now().minute))
                 current_notification = random.choice(notifications)
 
-                notification_placeholder.info(f"🔔 **Live Update:** {current_notification}")
+                notification_placeholder.info(
+                    f"🔔 **Live Update:** {current_notification}"
+                )
 
     # Enhanced Footer
     st.markdown("---")
