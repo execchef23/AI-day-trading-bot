@@ -21,6 +21,7 @@ except ImportError:
 
 try:
     from collections import defaultdict
+
     import numpy as np
     import pandas as pd
 except ImportError as e:
@@ -29,6 +30,7 @@ except ImportError as e:
 
 try:
     import plotly.graph_objects as go
+
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
@@ -59,12 +61,14 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
 
     try:
         from src.data_sources import DataManager
+
         MODULES_LOADED["data_manager"] = True
     except (ImportError, KeyError, ModuleNotFoundError) as e:
         pass
 
     try:
         from src.signals.signal_manager import SignalManager
+
         MODULES_LOADED["signals"] = True
     except (ImportError, KeyError) as e:
         logger.debug(f"Signal Manager not available: {e}")
@@ -72,6 +76,7 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
 
     try:
         from src.risk_management.portfolio_manager import PortfolioManager
+
         MODULES_LOADED["risk_management"] = True
     except (ImportError, KeyError) as e:
         logger.debug(f"Portfolio Manager not available: {e}")
@@ -87,6 +92,7 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
             SmallAccountStrategies,
             StrategyType,
         )
+
         MODULES_LOADED["small_account"] = True
         logger.info("✅ Small Account Trading System loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
@@ -100,6 +106,7 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
             TradingState,
             get_trading_engine,
         )
+
         TRADING_ENGINE_LOADED = True
         logger.info("✅ Live Trading Engine loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
@@ -109,6 +116,7 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
     MONITORING_SYSTEM_LOADED = False
     try:
         from src.monitoring import AlertLevel, AlertType, RealTimeMonitor, get_monitor
+
         MONITORING_SYSTEM_LOADED = True
         logger.info("✅ Real-Time Monitoring System loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
@@ -123,6 +131,7 @@ if "MODULES_IMPORT_GUARD" not in st.session_state:
             StockGrowthScreener,
             get_screener,
         )
+
         SCREENER_LOADED = True
         logger.info("✅ Stock Growth Screener loaded")
     except (ImportError, KeyError, ModuleNotFoundError) as e:
@@ -2203,7 +2212,9 @@ def display_stock_screener():
                         "Score": f"{result.score:.3f}",
                         "Category": f"{category_emoji} {result.growth_category.value.replace('_', ' ').title()}",
                         "Price": f"${result.current_price:.2f}",
-                        "Target": f"${result.target_price:.2f}" : "-",
+                        "Target": f"${result.target_price:.2f}"
+                        if result.target_price
+                        else "-",  # ✅ FIX: Changed : to if/else
                         "Potential": potential_return,
                         "RSI": f"{result.rsi:.1f}" if result.rsi else "-",
                         "MACD": result.macd_signal or "-",
