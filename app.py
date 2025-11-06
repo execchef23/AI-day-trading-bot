@@ -1191,7 +1191,14 @@ def display_trading_signals():
                 bg_color = "#e2e3e5"  # Light gray
                 border_color = "#6c757d"
 
+            # The content for the card will be built as a string
+            card_content = f"""
+            <div style='padding: 15px; border-left: 4px solid {border_color};
+                       background-color: {bg_color}; border-radius: 5px; margin: 10px 0;'>
+            """
+
             with st.container():
+                # Use markdown to render the card's opening div
                 st.markdown(
                     f"""
                     <div style='padding: 15px; border-left: 4px solid {border_color};
@@ -1239,6 +1246,9 @@ def display_trading_signals():
                             st.success(
                                 f" {signal['Signal']} order placed for {signal['Symbol']}"
                             )
+
+                # Close the div
+                st.markdown("</div>", unsafe_allow_html=True)
 
         # Signal summary statistics
         st.markdown("---")
@@ -2214,7 +2224,7 @@ def display_stock_screener():
                             st.metric("RSI", f"{top_pick.rsi:.1f}")
 
                     with metrics_col2:
-                        if top_pick.target_price:
+                                               if top_pick.target_price:
                             st.metric("Target Price", f"${top_pick.target_price:.2f}")
                         if top_pick.price_change_1w:
                             st.metric("1W Change", f"{top_pick.price_change_1w:.1%}")
