@@ -1,15 +1,29 @@
 import os
+import sys
 
-from dotenv import load_dotenv
+# Try to load environment variables, but don't fail if dotenv is missing
+try:
+    from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+    # Load environment variables
+    load_dotenv()
+    print("✅ Environment variables loaded from .env")
+except (ImportError, Exception) as e:
+    print(f"⚠️ Could not load dotenv: {e}. Using system environment variables only.")
 
 # Detect environment - Render uses /app as the root directory
 if os.path.exists("/app"):
     # We're on Render with /app path
     BASE_DIR = "/app"
     print("Running in Render environment: BASE_DIR set to /app")
+elif os.path.exists("/mount/src"):
+    # We're on Streamlit Cloud
+    BASE_DIR = "/mount/src"
+    print("Running in Streamlit Cloud environment: BASE_DIR set to /mount/src")
+elif hasattr(sys, "_MEIPASS"):
+    # Running as a PyInstaller bundle
+    BASE_DIR = sys._MEIPASS
+    print(f"Running as executable: BASE_DIR set to {BASE_DIR}")
 else:
     # Local development
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -81,34 +95,10 @@ DEFAULT_SYMBOLS = [
 
 TRADING_SYMBOLS = os.getenv("TRADING_SYMBOLS", ",".join(DEFAULT_SYMBOLS)).split(",")
 
-"""
-Configuration settings for AI Day Trading Bot
-"""
-
-# Initial capital for trading
-INITIAL_CAPITAL = 100000.0
-
-# List of symbols to trade
-TRADING_SYMBOLS = [
-    "AAPL",
-    "MSFT",
-    "GOOGL",
-    "AMZN",
-    "TSLA",
-    "NVDA",
-    "META",
-    "NFLX",
-]
-
-# Risk management settings
-MAX_POSITION_SIZE = 0.20  # 20% of portfolio per position
-STOP_LOSS_PCT = 0.05  # 5% stop loss
-TAKE_PROFIT_PCT = 0.15  # 15% take profit
+# Risk management settings (alternative names for compatibility)
+STOP_LOSS_PCT = STOP_LOSS_PERCENTAGE
+TAKE_PROFIT_PCT = TAKE_PROFIT_PERCENTAGE
 
 # Trading engine settings
 MAX_POSITIONS = 5
 SIGNAL_THRESHOLD = 0.6
-
-# API settings (if needed)
-ALPHA_VANTAGE_API_KEY = None  # Set if using Alpha Vantage
-POLYGON_API_KEY = None  # Set if using Polygon
