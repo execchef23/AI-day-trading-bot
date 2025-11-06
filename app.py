@@ -2224,7 +2224,7 @@ def display_stock_screener():
                             st.metric("RSI", f"{top_pick.rsi:.1f}")
 
                     with metrics_col2:
-                                               if top_pick.target_price:
+                        if top_pick.target_price:
                             st.metric("Target Price", f"${top_pick.target_price:.2f}")
                         if top_pick.price_change_1w:
                             st.metric("1W Change", f"{top_pick.price_change_1w:.1%}")
