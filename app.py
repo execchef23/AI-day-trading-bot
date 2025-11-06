@@ -1029,7 +1029,7 @@ def display_trading_signals():
                 with col2:
                     confidence_color = "green" if signal["Confidence"] > 0.7 else "orange" if signal["Confidence"] > 0.5 else "red"
                     st.markdown(f"**Confidence:** <span style='color: {confidence_color}'>{signal['Confidence']:.1%}</span>", unsafe_allow_html=True)
-                    st.markdown(f"**ML Score:** {signal['ML_Score']}/10")
+                    st.markdown(f"**ML Score:** {signal['ML_Score']}/10"
 
                 with col3:
                     st.markdown(f"**Current:** {signal['Price']}")
@@ -1042,9 +1042,9 @@ def display_trading_signals():
 
                     # Action button
                     if signal["Confidence"] >= 0.7:
-                        if st.button(f"Execute {signal['Signal']}", key=f"exec_{signal['Symbol']},
+                        if st.button(f"Execute {signal['Signal']}", key=f"exec_{signal['Symbol']}",
                                    help=f"Place {signal['Signal']} order for {signal['Symbol']}"):
-                            st.success(f"� {signal['Signal']} order placed for {signal['Symbol']}")
+                            st.success(f" {signal['Signal']} order placed for {signal['Symbol']}")
 
         # Signal summary statistics
         st.markdown("---")
@@ -2196,7 +2196,7 @@ def main():
             st.markdown("68.5% Win Rate")
 
         with col2:
-            st.markdown("**� Total P&L**")
+            st.markdown("**�️ Total P&L**")
             st.markdown("+$12,340.56")
 
         with col3:
