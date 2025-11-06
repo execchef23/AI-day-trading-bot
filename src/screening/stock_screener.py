@@ -58,6 +58,12 @@ class StockGrowthScreener:
         self.data_manager = None
         logger.info("Stock Growth Screener initialized")
 
+        # ✅ ADD: Beginner-friendly settings
+        self.beginner_mode = True
+        self.price_max = 50.0
+        self.price_min = 2.0
+        self.volume_min = 500000
+
     def set_components(self, data_manager=None, signal_manager=None):
         """Connect external components"""
         self.data_manager = data_manager
@@ -75,6 +81,133 @@ class StockGrowthScreener:
 
         logger.info(f"Scan complete: {len(results)} opportunities found")
         return results
+
+    def run_beginner_scan(self) -> Dict[str, ScreeningResult]:
+        """
+        Scan for BEGINNER-FRIENDLY stocks:
+        - Under $50 (affordable)
+        - High volume (liquid)
+        - Strong momentum (potential gains)
+        """
+
+        logger.info(
+            f"🔍 Running beginner-friendly scan (${self.price_min}-${self.price_max})"
+        )
+
+        # ✅ Expanded universe of affordable stocks
+        affordable_universe = self._get_affordable_stocks()
+
+        results = {}
+        for symbol in affordable_universe:
+            try:
+                # Get data
+                data = self._fetch_stock_data(symbol)
+                if data.empty:
+                    continue
+
+                current_price = data["Close"].iloc[-1]
+
+                # ✅ FILTER: Only affordable stocks
+                if not (self.price_min <= current_price <= self.price_max):
+                    continue
+
+                # ✅ FILTER: Must have volume (liquidity)
+                avg_volume = data["Volume"].mean()
+                if avg_volume < self.volume_min:
+                    continue
+
+                # Score the stock
+                result = self._analyze_stock(symbol, data)
+
+                if result and result.score >= 0.5:  # Lower threshold for beginners
+                    results[symbol] = result
+
+            except Exception as e:
+                logger.debug(f"Could not scan {symbol}: {e}")
+                continue
+
+        logger.info(f"✅ Found {len(results)} affordable opportunities")
+        return results
+
+    def _get_affordable_stocks(self) -> List[str]:
+        """
+        Get list of affordable, liquid stocks for beginners
+        """
+
+        # ✅ Popular affordable stocks (constantly updated)
+        affordable_stocks = [
+            # Fintech & Banking (Under $20)
+            "SOFI",
+            "NU",
+            "UPST",
+            "AFRM",
+            "SQ",
+            "HOOD",
+            # EV & Clean Energy (Under $30)
+            "NIO",
+            "LCID",
+            "RIVN",
+            "FSR",
+            "BLNK",
+            "CHPT",
+            # Tech & Software (Under $50)
+            "PLTR",
+            "SNAP",
+            "PINS",
+            "U",
+            "DDOG",
+            "NET",
+            # Retail & Consumer (Under $25)
+            "WISH",
+            "BBBY",
+            "GME",
+            "AMC",
+            "TLRY",
+            "SNDL",
+            # Healthcare (Under $40)
+            "TELADOC",
+            "TDOC",
+            "MRNA",
+            "BNTX",
+            # Telecom (Under $20)
+            "T",
+            "VZ",
+            "TMUS",
+            # Industrials (Under $30)
+            "F",
+            "GM",
+            "AAL",
+            "UAL",
+            "CCL",
+            # Banks (Under $50)
+            "BAC",
+            "WFC",
+            "C",
+            "JPM",
+            # REITs (Under $30)
+            "O",
+            "AGNC",
+            "NLY",
+            # Crypto Exposure (Variable)
+            "COIN",
+            "MARA",
+            "RIOT",
+            "MSTR",
+            # ETFs (Fractional shares)
+            "SPY",
+            "QQQ",
+            "IWM",
+            "DIA",
+            "VOO",
+        ]
+
+        # ✅ Add stocks from config
+        from config.config import TRADING_SYMBOLS
+
+        affordable_stocks.extend(TRADING_SYMBOLS)
+
+        # Remove duplicates
+        return list(set(affordable_stocks))
 
     def get_screening_status(self) -> Dict:
         """Get current screening status"""

@@ -68,8 +68,8 @@ class TradingConfig:
 
     # Execution settings
     execution_delay_seconds: float = 1.0  # Delay between trades
-    paper_trading: bool = True  # Start with paper trading
-    dry_run: bool = True
+    paper_trading: bool = True  # ✅ CHANGED: Always start with paper trading
+    dry_run: bool = True  # ✅ CHANGED: Dry run mode (no real execution)
 
     # Monitoring
     update_interval_seconds: int = 30  # Portfolio update frequency

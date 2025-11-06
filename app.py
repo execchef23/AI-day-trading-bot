@@ -232,7 +232,7 @@ if "scan_results" not in st.session_state:
 
 # Initialize small account system
 if "small_account_balance" not in st.session_state:
-    st.session_state.small_account_balance = 500.0
+    st.session_state.small_account_balance = 250.0  # ✅ CHANGED: from 500.0 to 250.0
 if "selected_strategy" not in st.session_state:
     st.session_state.selected_strategy = (
         StrategyType.SWING_TRADING if MODULES_LOADED["small_account"] else None
@@ -546,50 +546,55 @@ def display_system_status():
 
     with col1:
         st.subheader("🤖 Trading Bot Control Center")
+        st.caption("📋 Paper Trading Mode Active - All trades are simulated")  # ✅ ADD
 
     with col2:
-        # Main trading toggle - integrate with live engine if available
+        # Main trading toggle
         if TRADING_ENGINE_LOADED and "trading_engine" in st.session_state:
             engine = st.session_state.trading_engine
             engine_status = engine.get_status()
 
             if engine_status["state"] == "running":
                 if st.button(
-                    "🛑 Stop Live Engine",
+                    "🛑 Stop Paper Trading",  # ✅ CHANGED label
                     type="primary",
-                    help="Stop live trading engine",
+                    help="Stop paper trading engine",
                 ):
                     result = engine.stop_trading()
                     if result["success"]:
                         st.session_state.trading_active = False
-                        st.success("🛑 Live trading engine stopped")
+                        st.success("🛑 Paper trading stopped")
                         st.rerun()
             else:
                 if st.button(
-                    "🚀 Start Live Engine",
+                    "🚀 Start Paper Trading",  # ✅ CHANGED label
                     type="primary",
-                    help="Start live trading engine",
+                    help="Start paper trading with real-time data",
                 ):
                     result = engine.start_trading()
                     if result["success"]:
                         st.session_state.trading_active = True
-                        st.success("🚀 Live trading engine started")
+                        st.success("🚀 Paper trading started - Using real-time data!")
                         st.rerun()
         else:
             # Fallback to basic demo controls
             if st.session_state.trading_active:
                 if st.button(
-                    "🛑 Stop Trading", type="primary", help="Stop automated trading"
+                    "🛑 Stop Paper Trading",  # ✅ CHANGED
+                    type="primary",
+                    help="Stop paper trading",
                 ):
                     st.session_state.trading_active = False
-                    st.success("🛑 Trading bot stopped")
+                    st.success("🛑 Paper trading stopped")
                     st.rerun()
             else:
                 if st.button(
-                    "▶️ Start Trading", type="primary", help="Start automated trading"
+                    "▶️ Start Paper Trading",  # ✅ CHANGED
+                    type="primary",
+                    help="Start paper trading with real-time data",
                 ):
                     st.session_state.trading_active = True
-                    st.success("▶️ Trading bot started")
+                    st.success("▶️ Paper trading started!")
                     st.rerun()
 
     # Status metrics
@@ -604,18 +609,15 @@ def display_system_status():
         st.metric("Portfolio Value", f"${st.session_state.portfolio_value:,.2f}")
 
     with col3:
-        available_cash = INITIAL_CAPITAL * 0.7  # Assume 70% available for new positions
+        available_cash = INITIAL_CAPITAL * 0.7
         st.metric("Available Cash", f"${available_cash:,.0f}")
 
     with col4:
         st.metric("Active Positions", len(st.session_state.positions))
 
     with col5:
-        # System readiness indicator
-        if all(MODULES_LOADED.values()):
-            st.metric("System", "🟢 Live")
-        else:
-            st.metric("System", "🟡 Demo")
+        # ✅ CHANGED: Show Paper Trading indicator
+        st.metric("Mode", "📋 Paper")
 
 
 def display_portfolio_overview():
@@ -2213,7 +2215,6 @@ def display_stock_screener():
                         "Category": f"{category_emoji} {result.growth_category.value.replace('_', ' ').title()}",
                         "Price": f"${result.current_price:.2f}",
                         "Target": f"${result.target_price:.2f}"
-                        if result.target_price
                         else "-",  # ✅ FIX: Changed : to if/else
                         "Potential": potential_return,
                         "RSI": f"{result.rsi:.1f}" if result.rsi else "-",
@@ -2404,7 +2405,7 @@ def display_small_account_dashboard():
 
     st.header("💰 Small Account Trading System")
     st.markdown(
-        "**Build wealth starting with $500 - Professional strategies for small accounts**"
+        "**Build wealth starting with $250 - Professional strategies for small accounts**"  # ✅ CHANGED
     )
 
     if not MODULES_LOADED["small_account"]:
@@ -2417,7 +2418,8 @@ def display_small_account_dashboard():
     col1, col2, col3, col4 = st.columns(4)
 
     current_balance = st.session_state.small_account_balance
-    starting_balance = 500.0
+    starting_balance = 250.0  # ✅ CHANGED: from 500.0
+
     total_return = ((current_balance - starting_balance) / starting_balance) * 100
 
     with col1:
@@ -2650,7 +2652,8 @@ def display_small_account_dashboard():
         - Dividend: Slowest but safest growth
 
         **4. Growth Milestones**
-        - $500 → $1,000: Learn the basics
+        - $250 → $500: Learn the basics
+        - $500 → $1,000: Build consistency
         - $1,000 → $5,000: Refine your strategy
         - $5,000 → $25,000: Scale your system
         - $25,000+: Consider PDT freedom
@@ -2664,278 +2667,327 @@ def display_small_account_dashboard():
         """)
 
 
-def display_performance_analytics():
-    """Display performance analytics dashboard"""
+def display_paper_trading_dashboard():
+    """Paper Trading Dashboard - Test strategies without risk"""
 
-    st.header("📈 Performance Analytics")
+    st.header("📋 Paper Trading Dashboard")
+    st.markdown("**Learn to trade with $100K virtual money • Zero risk • Real opportunities**")
 
-    # Performance summary cards
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        total_return = 12.5  # Demo value
-        st.metric("Total Return", f"{total_return:.1f}%", delta="vs benchmark +3.2%")
-
-    with col2:
-        sharpe_ratio = 1.47
-        st.metric("Sharpe Ratio", f"{sharpe_ratio:.2f}", delta="Risk-adjusted return")
-
-    with col3:
-        max_dd = -5.8
-        st.metric("Max Drawdown", f"{max_dd:.1f}%", delta="Peak to trough")
-
-    with col4:
-        win_rate = 68.5
-        st.metric("Win Rate", f"{win_rate:.1f}%", delta=f"142/208 trades")
-
-    # Performance chart
-    if PLOTLY_AVAILABLE:
-        perf_chart = create_performance_chart()
-        if perf_chart:
-            st.plotly_chart(perf_chart, use_container_width=True)
-    else:
-        st.warning("📊 Performance charts require plotly installation")
-
-    # Strategy breakdown
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("📊 Strategy Performance")
-        strategy_data = {
-            "Strategy": ["Momentum", "Mean Reversion", "ML Ensemble", "Risk Parity"],
-            "Allocation": ["35%", "25%", "30%", "10%"],
-            "Return": ["15.2%", "8.7%", "18.5%", "6.1%"],
-            "Trades": [45, 32, 38, 12],
-        }
-        st.dataframe(strategy_data, use_container_width=True, hide_index=True)
-
-    with col2:
-        st.subheader("🎯 Monthly Performance")
-        monthly_data = {
-            "Month": ["Aug 2024", "Sep 2024", "Oct 2024"],
-            "Return": ["2.3%", "1.8%", "3.1%"],
-            "Benchmark": ["1.5%", "0.9%", "2.2%"],
-            "Alpha": ["+0.8%", "+0.9%", "+0.9%"],
-        }
-        st.dataframe(monthly_data, use_container_width=True, hide_index=True)
-
-
-def main():
-    """Main dashboard application"""
-
-    # Header with real-time status
+    # ✅ ADD: Beginner tips
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.title("🤖 AI Day Trading Bot")
-        st.markdown("**Intelligent Trading with Risk Management**")
+        st.info("💡 **Beginner Tip**: Start with 3-5 stocks, risk only 2% per trade, use stop losses!")
 
     with col2:
-        # Live clock and market status
-        current_time = datetime.now().strftime("%H:%M:%S")
-        st.markdown(f"🕒 **{current_time}**")
+        if st.button("📚 Trading Tips"):
+            st.session_state.show_tips = not st.session_state.get('show_tips', False)
 
-        # Simulate market hours (9:30 AM - 4:00 PM ET)
-        current_hour = datetime.now().hour
-        if 9 <= current_hour <= 16:
-            st.markdown("🟢 **Market Open**")
-        else:
-            st.markdown("🔴 **Market Closed**")
+    if st.session_state.get('show_tips', False):
+        st.markdown("""
+        ### 🎓 Beginner Trading Tips
 
-    # Deployment banner
-    if st.session_state.demo_mode:
-        st.info("🎮 **Demo Mode**: Showcasing capabilities with simulated data")
+        **Position Sizing:**
+        - Start with $2,000-$5,000 per position
+        - Never risk more than 2% of portfolio on one trade
+        - Use stop losses (5-10% below entry)
 
-    # System status
-    display_system_status()
+        **Stock Selection:**
+        - Focus on stocks under $50 (more shares = more gains)
+        - Look for high volume (>500K daily)
+        - Check momentum scores >0.7
 
-    # Enhanced Navigation
-    with st.sidebar:
-        st.markdown("---")
-        # Navigation options based on available features
-        nav_options = [
-            "📊 Dashboard",
-            "💼 Portfolio",
-            "📈 Market Data",
-            "⚠️ Risk Management",
-            "📡 Trading Signals",
-            "🏆 Performance",
-        ]
+        **Timing:**
+        - Avoid trading first 30 mins (9:30-10am)
+        - Best times: 10am-11am, 2pm-3pm
+        - Don't hold overnight when starting
 
-        # Add Small Account option if available
-        if MODULES_LOADED["small_account"]:
-            nav_options.insert(1, "💰 Small Account")  # Insert after Dashboard
+        **Mistakes to Avoid:**
+        - ❌ Revenge trading after losses
+        - ❌ Adding to losing positions
+        - ❌ Ignoring stop losses
+        - ❌ Trading without a plan
+        """)
 
-        if TRADING_ENGINE_LOADED:
-            nav_options.insert(
-                -1, "🤖 Live Trading Engine"
-            )  # Insert before Performance
-
-        if MONITORING_SYSTEM_LOADED:
-            nav_options.insert(
-                -1, "🔍 Real-Time Monitoring"
-            )  # Insert before Performance
-
-        if SCREENER_LOADED:
-            nav_options.insert(-1, "🔎 Stock Screener")  # Insert before Performance
-
-        page = st.radio("🧭 Navigation:", nav_options)
-
-        # Additional sidebar info
-        st.markdown("---")
-        st.markdown("### ⚡ Quick Stats")
-
-        if st.session_state.demo_mode:
-            demo_positions, _ = create_demo_data()
-            total_pnl = sum(pos["pnl"] for pos in demo_positions.values())
-            pnl_color = "green" if total_pnl >= 0 else "red"
-
-            st.markdown(
-                f"**P&L Today:** <span style='color: {pnl_color}'>${total_pnl:+,.2f}</span>",
-                unsafe_allow_html=True,
-            )
-            st.markdown(f"**Active Trades:** {len(demo_positions)}")
-            st.markdown(
-                f"**Bot Status:** {'🟢 Active' if st.session_state.trading_active else '🔴 Stopped'}"
-            )
-
-        # Quick actions
-        st.markdown("---")
-        st.markdown("### 🚀 Quick Actions")
-
-        if st.button("🔄 Refresh All", help="Refresh all dashboard data"):
-            st.success("✅ Dashboard refreshed!")
-            st.rerun()
-
-    # Main content routing
-    if page == "📊 Dashboard":
-        # Dashboard overview combining key metrics
-        col1, col2 = st.columns([2, 1])
-
-        with col1:
-            display_portfolio_overview()
-
-        with col2:
-            st.subheader("🎯 Today's Highlights")
-
-            # Mini trading signals
-            st.markdown("**🔥 Hot Signals:**")
-            st.success("📈 AAPL - Strong BUY (0.78)")
-            st.error("📉 TSLA - SELL (0.82)")
-            st.info("➡️ MSFT - HOLD (0.55)")
-
-            # Mini risk summary
-            st.markdown("**⚠️ Risk Status:**")
-            st.markdown("🟢 Portfolio Risk: 2.8%")
-            st.markdown("🟢 Correlation: Low")
-            st.markdown("🟡 Volatility: Medium")
-
-            # Quick market update
-            st.markdown("**📊 Market Snapshot:**")
-            st.markdown("• S&P 500: +0.8%")
-            st.markdown("• VIX: 18.5 (-2.1%)")
-            st.markdown("• 10Y Treasury: 4.35%")
-
-    elif page == "💰 Small Account":
-        display_small_account_dashboard()
-    elif page == "💼 Portfolio":
-        display_portfolio_overview()
-    elif page == "📈 Market Data":
-        display_market_data()
-    elif page == "⚠️ Risk Management":
-        display_risk_management()
-    elif page == "📡 Trading Signals":
-        display_trading_signals()
-    elif page == "🤖 Live Trading Engine":
-        display_trading_engine()
-    elif page == "🔍 Real-Time Monitoring":
-        display_real_time_monitoring()
-    elif page == "🔎 Stock Screener":
-        display_stock_screener()
-    elif page == "🏆 Performance":
-        display_performance_analytics()
-
-    # Real-time notifications (if trading is active)
-    if st.session_state.trading_active and page != "📊 Dashboard":
-        with st.container():
-            if st.session_state.demo_mode:
-                # Simulate live notifications
-                notification_placeholder = st.empty()
-
-                import random
-
-                notifications = [
-                    "📈 AAPL position +2.1% - consider profit taking",
-                    "⚠️ TSLA approaching stop loss level",
-                    "🔔 New BUY signal generated for MSFT",
-                    "📊 Portfolio rebalancing recommended",
-                    "✅ Risk levels within targets",
-                ]
-
-                random.seed(int(datetime.now().minute))
-                current_notification = random.choice(notifications)
-
-                notification_placeholder.info(
-                    f"🔔 **Live Update:** {current_notification}"
-                )
-
-    # Enhanced Footer
-    st.markdown("---")
-
-    # Performance summary bar
-    if st.session_state.demo_mode:
-        col1, col2, col3, col4, col5 = st.columns(5)
-
-        with col1:
-            st.markdown("**🎯 Success Rate**")
-            st.markdown("68.5% Win Rate")
-
-        with col2:
-            st.markdown("**�️ Total P&L**")
-            st.markdown("+$12,340.56")
-
-        with col3:
-            st.markdown("**📊 Sharpe Ratio**")
-            st.markdown("1.47")
-
-        with col4:
-            st.markdown("**⚡ Uptime**")
-            st.markdown("99.8%")
-
-        with col5:
-            st.markdown("**🔄 Last Update**")
-            st.markdown("Just now")
-
-    st.markdown("---")
+    # Paper Trading Account Summary
+    st.subheader("💵 Paper Account Summary")
 
     col1, col2, col3, col4 = st.columns(4)
 
+    portfolio = st.session_state.paper_portfolio
+    positions_value = sum(
+        pos['quantity'] * pos['current_price']
+        for pos in portfolio['positions'].values()
+    )
+    total_value = portfolio['cash'] + positions_value
+    total_return = ((total_value - INITIAL_CAPITAL) / INITIAL_CAPITAL) * 100
+
     with col1:
-        st.markdown("**🔧 Technology Stack:**")
-        st.markdown("• Python & Streamlit")
-        st.markdown("• XGBoost & LightGBM")
-        st.markdown("• Real-time APIs")
+        st.metric("Total Value", f"${total_value:,.2f}")
 
     with col2:
-        st.markdown("**�️ Risk Controls:**")
-        st.markdown("• Automated Stop-Loss")
-        st.markdown("• Position Sizing")
-        st.markdown("• Correlation Monitoring")
+        st.metric("Cash Available", f"${portfolio['cash']:,.2f}")
 
     with col3:
-        st.markdown("**📡 Data Sources:**")
-        st.markdown("• Yahoo Finance")
-        st.markdown("• Technical Indicators")
-        st.markdown("• ML Feature Engineering")
+        st.metric("Positions Value", f"${positions_value:,.2f}")
 
     with col4:
-        st.markdown("**🚀 Current Status:**")
-        status_text = "Demo Mode" if st.session_state.demo_mode else "Live Trading"
-        bot_status = "Active" if st.session_state.trading_active else "Stopped"
-        st.markdown(f"• Mode: {status_text}")
-        st.markdown(f"• Bot: {bot_status}")
-        st.markdown(f"• Version: 2.1.0")
+        delta_color = "normal" if total_return >= 0 else "inverse"
+        st.metric("Total Return", f"{total_return:+.1f}%", delta_color=delta_color)
 
+    # Get Stock Recommendations from Screener
+    st.markdown("---")
+    st.subheader("🎯 Affordable Stock Recommendations ($2-$50)")  # ✅ CHANGED
+
+    st.markdown("**AI-powered screening finds affordable, high-potential stocks perfect for beginners**")
+
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        if st.button("🔍 Find Affordable Stocks", help="Scan for stocks under $50", type="primary"):  # ✅ CHANGED
+            if SCREENER_LOADED and 'screener' in st.session_state:
+                with st.spinner("🤖 Scanning 100+ affordable stocks..."):
+                    try:
+                        # ✅ Use beginner scan
+                        results = st.session_state.screener.run_beginner_scan()
+                        st.session_state.scan_results = results
+                        st.session_state.last_scan_time = datetime.now()
+                        st.success(f"✅ Found {len(results)} affordable opportunities!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Scan failed: {e}")
+            else:
+                st.info("Using demo recommendations (affordable stocks)...")
+                # ✅ Demo with AFFORDABLE stocks
+                st.session_state.scan_results = {
+                    'SOFI': type('obj', (), {
+                        'symbol': 'SOFI', 'score': 0.82, 'current_price': 9.75,
+                        'target_price': 12.50, 'growth_category': type('cat', (), {'value': 'high_growth'})()
+                    })(),
+                    'PLTR': type('obj', (), {
+                        'symbol': 'PLTR', 'score': 0.78, 'current_price': 17.25,
+                        'target_price': 22.00, 'growth_category': type('cat', (), {'value': 'high_growth'})()
+                    })(),
+                    'NIO': type('obj', (), {
+                        'symbol': 'NIO', 'score': 0.75, 'current_price': 8.50,
+                        'target_price': 11.00, 'growth_category': type('cat', (), {'value': 'moderate_growth'})()
+                    })(),
+                    'F': type('obj', (), {
+                        'symbol': 'F', 'score': 0.71, 'current_price': 12.80,
+                        'target_price': 15.50, 'growth_category': type('cat', (), {'value': 'stable_growth'})()
+                    })(),
+                }
+                st.success("✅ Demo: 4 affordable stocks found!")
+                st.rerun()
+
+    with col2:
+        if st.session_state.get('last_scan_time'):
+            minutes_ago = int((datetime.now() - st.session_state.last_scan_time).seconds / 60)
+            st.info(f"🕒 Last scan: {minutes_ago} min ago")
+
+    # Display Top Recommendations
+    if st.session_state.get('scan_results'):
+        st.markdown("---")
+        st.subheader("🏆 Top Affordable Picks")
+
+        results = st.session_state.scan_results
+        top_picks = sorted(results.values(), key=lambda x: x.score, reverse=True)[:10]  # Show top 10
+
+        for pick in top_picks:
+            # ✅ ADD: Beginner-friendly labels
+            affordability = "🟢 Very Affordable" if pick.current_price < 15 else "🟡 Affordable" if pick.current_price < 30 else "🟠 Moderate"
+
+            with st.expander(
+                f"{'🚀' if pick.score > 0.8 else '📈'} {pick.symbol} - ${pick.current_price:.2f} - {affordability}",
+                expanded=True
+            ):
+                col1, col2, col3 = st.columns([2, 1, 1])
+
+                with col1:
+                    st.markdown(f"**Current Price:** ${pick.current_price:.2f}")
+                    if pick.target_price:
+                        upside = ((pick.target_price - pick.current_price) / pick.current_price) * 100
+                        st.markdown(f"**Target Price:** ${pick.target_price:.2f} (**{upside:+.1f}% potential**)")
+
+                    # ✅ ADD: Beginner context
+                    shares_for_1000 = int(1000 / pick.current_price)
+                    st.caption(f"💡 $1,000 buys ~{shares_for_1000} shares • Low entry barrier")
+
+                    st.markdown(f"**AI Score:** {pick.score:.3f}/1.0")
+                    st.markdown(f"**Category:** {pick.growth_category.value.replace('_', ' ').title()}")
+
+                with col2:
+                    quantity = st.number_input(
+                        "Shares",
+                        min_value=1,
+                        max_value=10000,
+                        value=min(100, int(2000 / pick.current_price)),  # ✅ Default to ~$2k position
+                        key=f"qty_{pick.symbol}"
+                    )
+                    position_cost = quantity * pick.current_price
+                    st.caption(f"Cost: ${position_cost:,.2f}")
+
+                    # ✅ ADD: Risk indicator
+                    risk_pct = (position_cost / portfolio['cash']) * 100
+                    if risk_pct < 5:
+                        st.success(f"✅ Low risk: {risk_pct:.1f}%")
+                    elif risk_pct < 10:
+                        st.warning(f"⚠️ Moderate: {risk_pct:.1f}%")
+                    else:
+                        st.error(f"🚨 High risk: {risk_pct:.1f}%")
+
+                with col3:
+                    if st.button(f"📈 Paper Buy", key=f"buy_{pick.symbol}", help="Add to paper portfolio"):
+                        if portfolio['cash'] >= position_cost:
+                            # Execute paper trade
+                            if pick.symbol in portfolio['positions']:
+                                pos = portfolio['positions'][pick.symbol]
+                                new_qty = pos['quantity'] + quantity
+                                new_avg = ((pos['quantity'] * pos['entry_price']) + position_cost) / new_qty
+                                pos['quantity'] = new_qty
+                                pos['entry_price'] = new_avg
+                            else:
+                                portfolio['positions'][pick.symbol] = {
+                                    'symbol': pick.symbol,
+                                    'quantity': quantity,
+                                    'entry_price': pick.current_price,
+                                    'current_price': pick.current_price,
+                                    'entry_time': datetime.now().isoformat()
+                                }
+
+                            portfolio['cash'] -= position_cost
+
+                            trade = {
+                                'time': datetime.now().isoformat(),
+                                'type': 'BUY',
+                                'symbol': pick.symbol,
+                                'quantity': quantity,
+                                'price': pick.current_price,
+                                'total': position_cost
+                            }
+                            portfolio['trade_history'].append(trade)
+
+                            st.success(f"✅ Bought {quantity} shares of {pick.symbol} @ ${pick.current_price:.2f}")
+                            st.rerun()
+                        else:
+                            st.error(f"❌ Insufficient cash. Need ${position_cost:,.2f}, have ${portfolio['cash']:,.2f}")
+
+    # Current Paper Positions
+    st.markdown("---")
+    st.subheader("📊 Current Paper Positions")
+
+    if portfolio['positions']:
+        positions_data = []
+        for symbol, pos in portfolio['positions'].items():
+            # Simulate price updates (in real app, fetch live prices)
+            import random
+            random.seed(hash(symbol))
+            current_price = pos['entry_price'] * (1 + random.uniform(-0.05, 0.05))
+            pos['current_price'] = current_price
+
+            market_value = pos['quantity'] * current_price
+            cost_basis = pos['quantity'] * pos['entry_price']
+            pnl = market_value - cost_basis
+            pnl_pct = (pnl / cost_basis) * 100
+
+            positions_data.append({
+                'Symbol': symbol,
+                'Quantity': pos['quantity'],
+                'Entry Price': f"${pos['entry_price']:.2f}",
+                'Current Price': f"${current_price:.2f}",
+                'Market Value': f"${market_value:,.2f}",
+                'P&L': f"${pnl:+,.2f}",
+                'Return %': f"{pnl_pct:+.1f}%",
+                'Action': symbol  # For button key
+            })
+
+        df = pd.DataFrame(positions_data)
+
+        # Display table without Action column
+        display_df = df.drop('Action', axis=1)
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+        # Sell buttons
+        st.markdown("**Close Positions:**")
+        cols = st.columns(len(positions_data))
+        for i, (col, pos_data) in enumerate(zip(cols, positions_data)):
+            with col:
+                symbol = pos_data['Action']
+                if st.button(f"📉 Sell {symbol}", key=f"sell_{symbol}"):
+                    pos = portfolio['positions'][symbol]
+                    proceeds = pos['quantity'] * pos['current_price']
+                    portfolio['cash'] += proceeds
+
+                    # Record trade
+                    trade = {
+                        'time': datetime.now().isoformat(),
+                        'type': 'SELL',
+                        'symbol': symbol,
+                        'quantity': pos['quantity'],
+                        'price': pos['current_price'],
+                        'total': proceeds
+                    }
+                    portfolio['trade_history'].append(trade)
+
+                    # Remove position
+                    del portfolio['positions'][symbol]
+
+                    st.success(f"✅ Sold {pos['quantity']} shares of {symbol}")
+                    st.rerun()
+    else:
+        st.info("📭 No paper positions yet. Use the screener above to find stocks to buy!")
+
+    # Trade History
+    st.markdown("---")
+    st.subheader("📜 Paper Trade History")
+
+    if portfolio['trade_history']:
+        recent_trades = portfolio['trade_history'][-10:][::-1]  # Last 10, most recent first
+
+        trade_data = []
+        for trade in recent_trades:
+            trade_data.append({
+                'Time': trade['time'][:19].replace('T', ' '),
+                'Type': f"{'🟢' if trade['type'] == 'BUY' else '🔴'} {trade['type']}",
+                'Symbol': trade['symbol'],
+                'Quantity': trade['quantity'],
+                'Price': f"${trade['price']:.2f}",
+                'Total': f"${trade['total']:,.2f}"
+            })
+
+        st.dataframe(trade_data, use_container_width=True, hide_index=True)
+    else:
+        st.info("📜 No trades yet. Start by buying stocks from recommendations above!")
+
+    # Performance Stats
+    if len(portfolio['trade_history']) > 0:
+        st.markdown("---")
+        st.subheader("📈 Performance Statistics")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            total_trades = len(portfolio['trade_history'])
+            st.metric("Total Trades", total_trades)
+
+        with col2:
+            buys = sum(1 for t in portfolio['trade_history'] if t['type'] == 'BUY')
+            sells = sum(1 for t in portfolio['trade_history'] if t['type'] == 'SELL')
+            st.metric("Buys / Sells", f"{buys} / {sells}")
+
+        with col3:
+            # Calculate win rate from closed positions
+            closed_positions = [t for t in portfolio['trade_history'] if t['type'] == 'SELL']
+            if closed_positions:
+                # Simplified win rate calculation
+                wins = sum(1 for t in closed_positions if t['total'] > t['quantity'] * t['price'] * 0.98)
+                win_rate = (wins / len(closed_positions)) * 100 if closed_positions else 0
+                st.metric("Win Rate", f"{win_rate:.1f}%")
+            else:
+                st.metric("Win Rate", "N/A")
+
+        with col4:
+            st.metric("ROI", f"{total_return:+.1f}%")
 
 # ✅ ADD THIS AT THE END - ACTUALLY CALL THE MAIN FUNCTION
 if __name__ == "__main__":
