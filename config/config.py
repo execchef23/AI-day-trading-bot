@@ -45,10 +45,10 @@ QUANDL_API_KEY = os.getenv("QUANDL_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Trading Configuration
-INITIAL_CAPITAL = float(os.getenv("INITIAL_CAPITAL", 10000))
-MAX_POSITION_SIZE = float(os.getenv("MAX_POSITION_SIZE", 0.05))
-STOP_LOSS_PERCENTAGE = float(os.getenv("STOP_LOSS_PERCENTAGE", 0.02))
-TAKE_PROFIT_PERCENTAGE = float(os.getenv("TAKE_PROFIT_PERCENTAGE", 0.05))
+INITIAL_CAPITAL = 100000.0
+MAX_POSITION_SIZE = 0.20  # 20% of portfolio per position
+STOP_LOSS_PERCENTAGE = 0.05  # 5% stop loss
+TAKE_PROFIT_PERCENTAGE = 0.15  # 15% take profit
 
 # Environment Configuration
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -72,11 +72,11 @@ DEFAULT_SYMBOLS = [
     "GOOGL",
     "AMZN",
     "TSLA",
-    "META",
     "NVDA",
+    "META",
     "NFLX",
-    "CRM",
-    "ADBE",
+    "SHOP",
+    "SQ",
 ]
 
 TRADING_SYMBOLS = os.getenv("TRADING_SYMBOLS", ",".join(DEFAULT_SYMBOLS)).split(",")
