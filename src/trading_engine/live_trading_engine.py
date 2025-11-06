@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 class TradingState(Enum):
     """Trading engine states"""
+
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -46,7 +47,9 @@ class TradingConfig:
     state: TradingState = TradingState.STOPPED
 
     # Trading parameters
-    symbols: List[str] = field(default_factory=lambda: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"])
+    symbols: List[str] = field(
+        default_factory=lambda: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
+    )
     initial_capital: float = 100000.0
     max_positions: int = 5
     position_size_pct: float = 0.20  # 20% of portfolio per position
@@ -157,6 +160,7 @@ class LiveTradingEngine:
             # Data Manager
             try:
                 from data_sources.data_manager import DataManager
+
                 self.data_manager = DataManager()
                 logger.info("✅ Data Manager initialized")
             except Exception as e:
@@ -165,6 +169,7 @@ class LiveTradingEngine:
             # Signal Manager
             try:
                 from signals.signal_manager import SignalManager
+
                 self.signal_manager = SignalManager()
                 logger.info("✅ Signal Manager initialized")
             except Exception as e:
@@ -173,8 +178,9 @@ class LiveTradingEngine:
             # Portfolio Manager
             try:
                 from risk_management.portfolio_manager import PortfolioManager
+
                 self.portfolio_manager = PortfolioManager(
-                    initial_cash=self.config.initial_capital
+                    initial_capital=self.config.initial_capital  # ✅ FIXED: was initial_cash
                 )
                 logger.info("✅ Portfolio Manager initialized")
             except Exception as e:
@@ -206,11 +212,13 @@ class LiveTradingEngine:
                 self.state = TradingState.ERROR
                 return {
                     "success": False,
-                    "message": f"Configuration invalid: {validation_result['errors']}"
+                    "message": f"Configuration invalid: {validation_result['errors']}",
                 }
 
             # Start main trading loop in separate thread
-            self.engine_thread = threading.Thread(target=self._trading_loop, daemon=True)
+            self.engine_thread = threading.Thread(
+                target=self._trading_loop, daemon=True
+            )
             self.engine_thread.start()
 
             self.state = TradingState.RUNNING
@@ -221,7 +229,7 @@ class LiveTradingEngine:
                 "success": True,
                 "message": "Trading engine started",
                 "state": self.state.value,
-                "config": self._get_config_summary()
+                "config": self._get_config_summary(),
             }
 
         except Exception as e:
@@ -251,7 +259,7 @@ class LiveTradingEngine:
             return {
                 "success": True,
                 "message": "Trading engine stopped",
-                "final_metrics": self._get_metrics_summary()
+                "final_metrics": self._get_metrics_summary(),
             }
 
         except Exception as e:
@@ -344,9 +352,11 @@ class LiveTradingEngine:
         """Generate trading signals using ML and technical analysis"""
 
         # Check cooldown period
-        if (self.metrics.last_signal_time and
-            datetime.now() - self.metrics.last_signal_time <
-            timedelta(minutes=self.config.signal_cooldown_minutes)):
+        if (
+            self.metrics.last_signal_time
+            and datetime.now() - self.metrics.last_signal_time
+            < timedelta(minutes=self.config.signal_cooldown_minutes)
+        ):
             return
 
         if not self.signal_manager:
@@ -364,18 +374,20 @@ class LiveTradingEngine:
                     symbol=symbol,
                     data=self.price_data[symbol],
                     use_ml=self.config.use_ml_models,
-                    use_technical=self.config.use_technical_analysis
+                    use_technical=self.config.use_technical_analysis,
                 )
 
                 if signal and signal.confidence >= self.config.signal_threshold:
                     new_signals.append(signal)
-                    self.signals_history.append({
-                        "timestamp": datetime.now(),
-                        "symbol": symbol,
-                        "signal": signal.signal_type.value,
-                        "confidence": signal.confidence,
-                        "price": signal.price
-                    })
+                    self.signals_history.append(
+                        {
+                            "timestamp": datetime.now(),
+                            "symbol": symbol,
+                            "signal": signal.signal_type.value,
+                            "confidence": signal.confidence,
+                            "price": signal.price,
+                        }
+                    )
 
             if new_signals:
                 logger.info(f"📡 Generated {len(new_signals)} signals")
@@ -394,7 +406,8 @@ class LiveTradingEngine:
         try:
             # Get recent signals to process
             recent_signals = [
-                s for s in self.signals_history
+                s
+                for s in self.signals_history
                 if datetime.now() - s["timestamp"] < timedelta(minutes=5)
             ]
 
@@ -421,7 +434,10 @@ class LiveTradingEngine:
         """Determine if we should execute a signal"""
 
         # Check position limits
-        if len(self.positions) >= self.config.max_positions and signal_type in ["BUY", "STRONG_BUY"]:
+        if len(self.positions) >= self.config.max_positions and signal_type in [
+            "BUY",
+            "STRONG_BUY",
+        ]:
             return False
 
         # Check if we already have a position
@@ -430,13 +446,17 @@ class LiveTradingEngine:
 
         # Check cash availability for buys
         if signal_type in ["BUY", "STRONG_BUY"]:
-            position_value = self.metrics.portfolio_value * self.config.position_size_pct
+            position_value = (
+                self.metrics.portfolio_value * self.config.position_size_pct
+            )
             if position_value > self.metrics.cash_balance:
                 return False
 
         return True
 
-    def _execute_trade(self, symbol: str, signal_type: str, signal_data: Dict) -> Dict[str, Any]:
+    def _execute_trade(
+        self, symbol: str, signal_type: str, signal_data: Dict
+    ) -> Dict[str, Any]:
         """Execute a trade based on signal"""
 
         if not self.portfolio_manager:
@@ -447,7 +467,9 @@ class LiveTradingEngine:
 
             if signal_type in ["BUY", "STRONG_BUY"]:
                 # Calculate position size
-                position_value = self.metrics.portfolio_value * self.config.position_size_pct
+                position_value = (
+                    self.metrics.portfolio_value * self.config.position_size_pct
+                )
                 quantity = int(position_value / current_price)
 
                 if quantity > 0:
@@ -458,7 +480,7 @@ class LiveTradingEngine:
                         price=current_price,
                         stop_loss=current_price * (1 - self.config.stop_loss_pct),
                         take_profit=current_price * (1 + self.config.take_profit_pct),
-                        dry_run=self.config.dry_run
+                        dry_run=self.config.dry_run,
                     )
 
                     if result["success"]:
@@ -466,8 +488,10 @@ class LiveTradingEngine:
                             "quantity": quantity,
                             "entry_price": current_price,
                             "entry_time": datetime.now(),
-                            "stop_loss": current_price * (1 - self.config.stop_loss_pct),
-                            "take_profit": current_price * (1 + self.config.take_profit_pct)
+                            "stop_loss": current_price
+                            * (1 - self.config.stop_loss_pct),
+                            "take_profit": current_price
+                            * (1 + self.config.take_profit_pct),
                         }
 
                     return result
@@ -480,12 +504,14 @@ class LiveTradingEngine:
                     action="SELL",
                     quantity=position["quantity"],
                     price=current_price,
-                    dry_run=self.config.dry_run
+                    dry_run=self.config.dry_run,
                 )
 
                 if result["success"]:
                     # Calculate P&L
-                    pnl = (current_price - position["entry_price"]) * position["quantity"]
+                    pnl = (current_price - position["entry_price"]) * position[
+                        "quantity"
+                    ]
                     self.metrics.total_pnl += pnl
 
                     if pnl > 0:
@@ -558,7 +584,9 @@ class LiveTradingEngine:
             # Check portfolio risk limit
             portfolio_risk_pct = total_risk / total_value if total_value > 0 else 0
             if portfolio_risk_pct >= self.config.max_portfolio_risk:
-                logger.warning(f"🚨 Portfolio risk limit exceeded: {portfolio_risk_pct:.2%}")
+                logger.warning(
+                    f"🚨 Portfolio risk limit exceeded: {portfolio_risk_pct:.2%}"
+                )
                 # Could trigger position reduction here
 
         except Exception as e:
@@ -576,14 +604,18 @@ class LiveTradingEngine:
             self.metrics.uptime_hours = uptime_delta.total_seconds() / 3600
 
             # Update trade counts
-            self.metrics.total_trades = self.metrics.winning_trades + self.metrics.losing_trades
+            self.metrics.total_trades = (
+                self.metrics.winning_trades + self.metrics.losing_trades
+            )
 
             # Calculate unrealized P&L
             unrealized_pnl = 0.0
             for symbol, position in self.positions.items():
                 if symbol in self.price_data:
                     current_price = self.price_data[symbol]["Close"].iloc[-1]
-                    unrealized_pnl += (current_price - position["entry_price"]) * position["quantity"]
+                    unrealized_pnl += (
+                        current_price - position["entry_price"]
+                    ) * position["quantity"]
 
             self.metrics.unrealized_pnl = unrealized_pnl
 
@@ -636,10 +668,10 @@ class LiveTradingEngine:
                 },
                 "positions": self.positions,
                 "recent_signals": self.signals_history[-50:],  # Keep last 50 signals
-                "recent_trades": self.trades_history[-100:]  # Keep last 100 trades
+                "recent_trades": self.trades_history[-100:],  # Keep last 100 trades
             }
 
-            with open(self.state_file, 'w') as f:
+            with open(self.state_file, "w") as f:
                 json.dump(state_data, f, indent=2, default=str)
 
             logger.debug("💾 Engine state saved")
@@ -654,7 +686,7 @@ class LiveTradingEngine:
             return
 
         try:
-            with open(self.state_file, 'r') as f:
+            with open(self.state_file, "r") as f:
                 state_data = json.load(f)
 
             # Restore positions
@@ -678,14 +710,19 @@ class LiveTradingEngine:
             "state": self.state.value,
             "enabled": self.config.enabled,
             "uptime_hours": self.metrics.uptime_hours,
-            "last_update": self.metrics.last_update.isoformat() if self.metrics.last_update else None,
+            "last_update": self.metrics.last_update.isoformat()
+            if self.metrics.last_update
+            else None,
             "positions_count": len(self.positions),
             "total_trades": self.metrics.total_trades,
-            "win_rate": (self.metrics.winning_trades / max(self.metrics.total_trades, 1)) * 100,
+            "win_rate": (
+                self.metrics.winning_trades / max(self.metrics.total_trades, 1)
+            )
+            * 100,
             "total_pnl": self.metrics.total_pnl,
             "portfolio_value": self.metrics.portfolio_value,
             "errors_count": self.metrics.errors_count,
-            "last_error": self.metrics.last_error
+            "last_error": self.metrics.last_error,
         }
 
     def get_positions(self) -> List[Dict[str, Any]]:
@@ -701,17 +738,19 @@ class LiveTradingEngine:
             pnl = (current_price - position["entry_price"]) * position["quantity"]
             pnl_pct = (pnl / (position["entry_price"] * position["quantity"])) * 100
 
-            positions_list.append({
-                "symbol": symbol,
-                "quantity": position["quantity"],
-                "entry_price": position["entry_price"],
-                "current_price": current_price,
-                "pnl": pnl,
-                "pnl_pct": pnl_pct,
-                "entry_time": position["entry_time"].isoformat(),
-                "stop_loss": position["stop_loss"],
-                "take_profit": position["take_profit"]
-            })
+            positions_list.append(
+                {
+                    "symbol": symbol,
+                    "quantity": position["quantity"],
+                    "entry_price": position["entry_price"],
+                    "current_price": current_price,
+                    "pnl": pnl,
+                    "pnl_pct": pnl_pct,
+                    "entry_time": position["entry_time"].isoformat(),
+                    "stop_loss": position["stop_loss"],
+                    "take_profit": position["take_profit"],
+                }
+            )
 
         return positions_list
 
@@ -748,7 +787,7 @@ class LiveTradingEngine:
             "take_profit_pct": self.config.take_profit_pct,
             "signal_threshold": self.config.signal_threshold,
             "paper_trading": self.config.paper_trading,
-            "dry_run": self.config.dry_run
+            "dry_run": self.config.dry_run,
         }
 
     def _get_metrics_summary(self) -> Dict[str, Any]:
@@ -758,11 +797,14 @@ class LiveTradingEngine:
             "uptime_hours": round(self.metrics.uptime_hours, 2),
             "total_trades": self.metrics.total_trades,
             "winning_trades": self.metrics.winning_trades,
-            "win_rate": round((self.metrics.winning_trades / max(self.metrics.total_trades, 1)) * 100, 1),
+            "win_rate": round(
+                (self.metrics.winning_trades / max(self.metrics.total_trades, 1)) * 100,
+                1,
+            ),
             "total_pnl": round(self.metrics.total_pnl, 2),
             "portfolio_value": round(self.metrics.portfolio_value, 2),
             "signals_generated": self.metrics.signals_generated,
-            "signals_executed": self.metrics.signals_executed
+            "signals_executed": self.metrics.signals_executed,
         }
 
 

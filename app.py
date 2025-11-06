@@ -55,94 +55,112 @@ logger = logging.getLogger(__name__)
 # Add src directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
-# Import our modules with error handling
-MODULES_LOADED = {
-    "data_manager": False,
-    "signals": False,
-    "risk_management": False,
-    "small_account": False,
-}
+# Prevent repeated imports with module-level guard
+if "MODULES_IMPORT_GUARD" not in st.session_state:
+    st.session_state.MODULES_IMPORT_GUARD = True
 
-try:
-    from src.data_sources import DataManager
+    # Import our modules with error handling
+    MODULES_LOADED = {
+        "data_manager": False,
+        "signals": False,
+        "risk_management": False,
+        "small_account": False,
+    }
 
-    MODULES_LOADED["data_manager"] = True
-except (ImportError, KeyError, ModuleNotFoundError) as e:
-    pass  # Suppress - will use demo mode
+    try:
+        from src.data_sources import DataManager
 
-try:
-    from src.signals.signal_manager import SignalManager
+        MODULES_LOADED["data_manager"] = True
+    except (ImportError, KeyError, ModuleNotFoundError) as e:
+        pass  # Suppress - will use demo mode
 
-    MODULES_LOADED["signals"] = True
-except (ImportError, KeyError) as e:
-    # Suppress detailed error - will use demo mode
-    logger.debug(f"Signal Manager not available: {e}")
-    pass
+    try:
+        from src.signals.signal_manager import SignalManager
 
-try:
-    from src.risk_management.portfolio_manager import PortfolioManager
+        MODULES_LOADED["signals"] = True
+    except (ImportError, KeyError) as e:
+        # Suppress detailed error - will use demo mode
+        logger.debug(f"Signal Manager not available: {e}")
+        pass
 
-    MODULES_LOADED["risk_management"] = True
-except (ImportError, KeyError) as e:
-    # Suppress detailed error - will use demo mode
-    logger.debug(f"Portfolio Manager not available: {e}")
-    pass
+    try:
+        from src.risk_management.portfolio_manager import PortfolioManager
 
-# Small Account Trading System
-try:
-    from src.small_account import (
-        AccountTier,
-        GrowthCalculator,
-        GrowthScenario,
-        GrowthStrategy,
-        SmallAccountPositionSizer,
-        SmallAccountStrategies,
-        StrategyType,
+        MODULES_LOADED["risk_management"] = True
+    except (ImportError, KeyError) as e:
+        # Suppress detailed error - will use demo mode
+        logger.debug(f"Portfolio Manager not available: {e}")
+        pass
+
+    # Small Account Trading System
+    try:
+        from src.small_account import (
+            AccountTier,
+            GrowthCalculator,
+            GrowthScenario,
+            GrowthStrategy,
+            SmallAccountPositionSizer,
+            SmallAccountStrategies,
+            StrategyType,
+        )
+
+        MODULES_LOADED["small_account"] = True
+        logger.info("✅ Small Account Trading System loaded")
+    except (ImportError, KeyError, ModuleNotFoundError) as e:
+        pass  # Suppress - will use demo mode
+
+    # Trading Engine
+    TRADING_ENGINE_LOADED = False
+    try:
+        from src.trading_engine.live_trading_engine import (
+            TradingConfig,
+            TradingState,
+            get_trading_engine,
+        )
+
+        TRADING_ENGINE_LOADED = True
+        logger.info("✅ Live Trading Engine loaded")
+    except (ImportError, KeyError, ModuleNotFoundError) as e:
+        pass  # Suppress - will use demo mode
+
+    # Real-Time Monitoring System
+    MONITORING_SYSTEM_LOADED = False
+    try:
+        from src.monitoring import AlertLevel, AlertType, RealTimeMonitor, get_monitor
+
+        MONITORING_SYSTEM_LOADED = True
+        logger.info("✅ Real-Time Monitoring System loaded")
+    except (ImportError, KeyError, ModuleNotFoundError) as e:
+        pass  # Suppress - will use demo mode
+
+    # Stock Growth Screener System
+    SCREENER_LOADED = False
+    try:
+        from src.screening.stock_screener import (
+            GrowthCategory,
+            ScreeningCriteria,
+            StockGrowthScreener,
+            get_screener,
+        )
+
+        SCREENER_LOADED = True
+        logger.info("✅ Stock Growth Screener loaded")
+    except (ImportError, KeyError, ModuleNotFoundError) as e:
+        pass  # Suppress - will use demo mode
+else:
+    # Reuse existing MODULES_LOADED from session state
+    MODULES_LOADED = st.session_state.get(
+        "MODULES_LOADED",
+        {
+            "data_manager": False,
+            "signals": False,
+            "risk_management": False,
+            "small_account": False,
+        },
     )
 
-    MODULES_LOADED["small_account"] = True
-    logger.info("✅ Small Account Trading System loaded")
-except (ImportError, KeyError, ModuleNotFoundError) as e:
-    pass  # Suppress - will use demo mode
-
-# Trading Engine
-TRADING_ENGINE_LOADED = False
-try:
-    from src.trading_engine.live_trading_engine import (
-        TradingConfig,
-        TradingState,
-        get_trading_engine,
-    )
-
-    TRADING_ENGINE_LOADED = True
-    logger.info("✅ Live Trading Engine loaded")
-except (ImportError, KeyError, ModuleNotFoundError) as e:
-    pass  # Suppress - will use demo mode
-
-# Real-Time Monitoring System
-MONITORING_SYSTEM_LOADED = False
-try:
-    from src.monitoring import AlertLevel, AlertType, RealTimeMonitor, get_monitor
-
-    MONITORING_SYSTEM_LOADED = True
-    logger.info("✅ Real-Time Monitoring System loaded")
-except (ImportError, KeyError, ModuleNotFoundError) as e:
-    pass  # Suppress - will use demo mode
-
-# Stock Growth Screener System
-SCREENER_LOADED = False
-try:
-    from src.screening.stock_screener import (
-        GrowthCategory,
-        ScreeningCriteria,
-        StockGrowthScreener,
-        get_screener,
-    )
-
-    SCREENER_LOADED = True
-    logger.info("✅ Stock Growth Screener loaded")
-except (ImportError, KeyError, ModuleNotFoundError) as e:
-    pass  # Suppress - will use demo mode
+# Store in session state for reuse
+st.session_state.MODULES_LOADED = MODULES_LOADED
 
 # Configuration with fallbacks
 INITIAL_CAPITAL = 100000.0
