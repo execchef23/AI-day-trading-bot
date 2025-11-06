@@ -44,11 +44,12 @@ except ImportError:
 import logging
 
 # Configure logging only once to prevent duplicates
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    force=True,  # Force reconfiguration to prevent duplicates
-)
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        force=True,
+    )
 logger = logging.getLogger(__name__)
 
 # Add src directory to path for imports
