@@ -1196,7 +1196,6 @@ def display_trading_signals():
                     f"""
                     <div style='padding: 15px; border-left: 4px solid {border_color};
                                background-color: {bg_color}; border-radius: 5px; margin: 10px 0;'>
-                    </div>
                     """,
                     unsafe_allow_html=True,
                 )
