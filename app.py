@@ -43,8 +43,11 @@ except ImportError:
 # Setup logging first
 import logging
 
+# Configure logging only once to prevent duplicates
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    force=True,  # Force reconfiguration to prevent duplicates
 )
 logger = logging.getLogger(__name__)
 
@@ -63,22 +66,26 @@ try:
     from src.data_sources import DataManager
 
     MODULES_LOADED["data_manager"] = True
-except ImportError as e:
-    st.sidebar.warning(f"Data sources not available: {e}")
+except (ImportError, KeyError, ModuleNotFoundError) as e:
+    pass  # Suppress - will use demo mode
 
 try:
     from src.signals.signal_manager import SignalManager
 
     MODULES_LOADED["signals"] = True
-except ImportError as e:
-    st.sidebar.warning(f"Signal generation not available: {e}")
+except (ImportError, KeyError) as e:
+    # Suppress detailed error - will use demo mode
+    logger.debug(f"Signal Manager not available: {e}")
+    pass
 
 try:
     from src.risk_management.portfolio_manager import PortfolioManager
 
     MODULES_LOADED["risk_management"] = True
-except ImportError:
-    logger.warning("⚠️ Risk management module not available")
+except (ImportError, KeyError) as e:
+    # Suppress detailed error - will use demo mode
+    logger.debug(f"Portfolio Manager not available: {e}")
+    pass
 
 # Small Account Trading System
 try:
@@ -94,9 +101,8 @@ try:
 
     MODULES_LOADED["small_account"] = True
     logger.info("✅ Small Account Trading System loaded")
-except (ImportError, KeyError) as e:
-    # Suppress detailed error - will use demo mode
-    pass
+except (ImportError, KeyError, ModuleNotFoundError) as e:
+    pass  # Suppress - will use demo mode
 
 # Trading Engine
 TRADING_ENGINE_LOADED = False
@@ -109,9 +115,8 @@ try:
 
     TRADING_ENGINE_LOADED = True
     logger.info("✅ Live Trading Engine loaded")
-except (ImportError, KeyError) as e:
-    # Suppress detailed error - will use demo mode
-    pass
+except (ImportError, KeyError, ModuleNotFoundError) as e:
+    pass  # Suppress - will use demo mode
 
 # Real-Time Monitoring System
 MONITORING_SYSTEM_LOADED = False
@@ -120,9 +125,8 @@ try:
 
     MONITORING_SYSTEM_LOADED = True
     logger.info("✅ Real-Time Monitoring System loaded")
-except (ImportError, KeyError) as e:
-    # Suppress detailed error - will use demo mode
-    pass
+except (ImportError, KeyError, ModuleNotFoundError) as e:
+    pass  # Suppress - will use demo mode
 
 # Stock Growth Screener System
 SCREENER_LOADED = False
@@ -136,9 +140,8 @@ try:
 
     SCREENER_LOADED = True
     logger.info("✅ Stock Growth Screener loaded")
-except (ImportError, KeyError) as e:
-    # Suppress detailed error - will use demo mode
-    pass
+except (ImportError, KeyError, ModuleNotFoundError) as e:
+    pass  # Suppress - will use demo mode
 
 # Configuration
 INITIAL_CAPITAL = 100000
@@ -1535,6 +1538,7 @@ def display_trading_engine():
 
             if recent_signals:
                 signals_df = []
+                signals_df = []
                 for signal in recent_signals[-5:]:  # Show last 5
                     signals_df.append(
                         {
@@ -2215,6 +2219,7 @@ def display_stock_screener():
 
                 with col1:
                     st.markdown(f"### {top_pick.symbol}")
+
                     st.markdown(
                         f"**Score:** {top_pick.score:.3f} | **Category:** {top_pick.growth_category.value.replace('_', ' ').title()}"
                     )
