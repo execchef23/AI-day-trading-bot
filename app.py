@@ -3087,5 +3087,117 @@ def display_paper_trading_dashboard():
 
 
 # ✅ ADD THIS AT THE END - ACTUALLY CALL THE MAIN FUNCTION
+def main():
+    """Main dashboard application"""
+
+    # Header with real-time status
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+        st.title("🤖 AI Day Trading Bot")
+        st.markdown("**Beginner-Friendly • Paper Trading • Real-Time Data**")
+
+        # Beginner mode badge
+        st.info(
+            "🎓 **Beginner Mode Active** - Scanning affordable stocks ($2-$50) perfect for small accounts"
+        )
+
+    with col2:
+        # Live clock and market status
+        current_time = datetime.now().strftime("%H:%M:%S")
+        st.markdown(f"🕒 **{current_time}**")
+
+        # Simulate market hours
+        current_hour = datetime.now().hour
+        if 9 <= current_hour <= 16:
+            st.markdown("🟢 **Market Open**")
+        else:
+            st.markdown("🔴 **Market Closed**")
+
+    # Paper Trading Mode Banner
+    st.success(
+        "📋 **PAPER TRADING MODE** - Zero risk • Real-time data • Perfect for learning"
+    )
+
+    # Quick start guide for beginners
+    with st.expander("🎯 Quick Start Guide for Beginners", expanded=False):
+        st.markdown("""
+        ### Welcome to Paper Trading! 🎉
+
+        **What is Paper Trading?**
+        - Practice with **$100,000 virtual money**
+        - Use **real-time stock data**
+        - **Zero financial risk** - perfect for learning
+
+        **How to Get Started:**
+        1. **📋 Go to "Paper Trading" tab** in the sidebar
+        2. **🔍 Click "Run Stock Screener"** - AI finds affordable stocks
+        3. **👀 Review recommendations** - See price, potential gains, risk
+        4. **📈 Click "Paper Buy"** to add to your virtual portfolio
+        5. **📊 Monitor performance** - Track wins/losses over time
+
+        **Why Affordable Stocks ($2-$50)?**
+        - ✅ More shares for your money
+        - ✅ Higher percentage gains possible
+        - ✅ Lower risk per share
+        - ✅ Learn without huge capital requirements
+
+        **Success Metrics to Track:**
+        - 🎯 Win Rate: Aim for >55%
+        - 📈 Average Return: Target 3-5% per trade
+        - 📊 ROI: Goal is consistent growth
+
+        **Ready to start?** Click "Paper Trading" in the sidebar! 🚀
+        """)
+
+    # Deployment banner
+    if st.session_state.demo_mode:
+        st.warning(
+            "🎮 **Demo Mode**: Some features use simulated data for demonstration"
+        )
+
+    # Sidebar navigation
+    st.sidebar.title("📊 Navigation")
+
+    page = st.sidebar.radio(
+        "Select Page",
+        [
+            "System Status",
+            "Portfolio Overview",
+            "Market Data",
+            "Trading Signals",
+            "Risk Management",
+            "Paper Trading",
+            "Small Account Trading",
+            "Stock Screener",
+            "Trading Engine",
+            "Real-Time Monitoring",
+        ],
+    )
+
+    # Display selected page
+    if page == "System Status":
+        display_system_status()
+    elif page == "Portfolio Overview":
+        display_portfolio_overview()
+    elif page == "Market Data":
+        display_market_data()
+    elif page == "Trading Signals":
+        display_trading_signals()
+    elif page == "Risk Management":
+        display_risk_management()
+    elif page == "Paper Trading":
+        display_paper_trading_dashboard()
+    elif page == "Small Account Trading":
+        display_small_account_dashboard()
+    elif page == "Stock Screener":
+        display_stock_screener()
+    elif page == "Trading Engine":
+        display_trading_engine()
+    elif page == "Real-Time Monitoring":
+        display_real_time_monitoring()
+
+
+# ✅ Make sure this is at the very end of the file
 if __name__ == "__main__":
     main()
