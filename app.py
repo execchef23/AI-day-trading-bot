@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
 # Import our modules with error handling
-MODULES_LOADED = {"data_manager": False, "signals": False, "risk_management": False}
+MODULES_LOADED = {"data_manager": False, "signals": False, "risk_management": False, "small_account": False}
 
 try:
     from src.data_sources import DataManager
@@ -68,10 +68,20 @@ except ImportError as e:
 
 try:
     from src.risk_management.portfolio_manager import PortfolioManager
-
     MODULES_LOADED["risk_management"] = True
 except ImportError:
     logger.warning("⚠️ Risk management module not available")
+
+# Small Account Trading System
+try:
+    from src.small_account import (
+        SmallAccountPositionSizer, AccountTier, GrowthStrategy, StrategyType,
+        SmallAccountStrategies, GrowthCalculator, GrowthScenario
+    )
+    MODULES_LOADED["small_account"] = True
+    logger.info("✅ Small Account Trading System loaded")
+except ImportError:
+    logger.warning("⚠️ Small Account Trading System not available")
 
 # Trading Engine
 TRADING_ENGINE_LOADED = False
@@ -173,6 +183,18 @@ if "last_scan_time" not in st.session_state:
     st.session_state.last_scan_time = None
 if "scan_results" not in st.session_state:
     st.session_state.scan_results = {}
+
+# Initialize small account system
+if "small_account_balance" not in st.session_state:
+    st.session_state.small_account_balance = 500.0
+if "selected_strategy" not in st.session_state:
+    st.session_state.selected_strategy = StrategyType.SWING_TRADING if MODULES_LOADED["small_account"] else None
+if "growth_scenario" not in st.session_state:
+    st.session_state.growth_scenario = GrowthScenario.MODERATE if MODULES_LOADED["small_account"] else None
+if "position_sizer" not in st.session_state and MODULES_LOADED["small_account"]:
+    st.session_state.position_sizer = SmallAccountPositionSizer()
+if "growth_calculator" not in st.session_state and MODULES_LOADED["small_account"]:
+    st.session_state.growth_calculator = GrowthCalculator()
 
 
 def create_demo_data():
@@ -1020,7 +1042,7 @@ def display_trading_signals():
 
                     # Action button
                     if signal["Confidence"] >= 0.7:
-                        if st.button(f"Execute {signal['Signal']}", key=f"exec_{signal['Symbol']}",
+                        if st.button(f"Execute {signal['Signal']}", key=f"exec_{signal['Symbol']},
                                    help=f"Place {signal['Signal']} order for {signal['Symbol']}"):
                             st.success(f"� {signal['Signal']} order placed for {signal['Symbol']}")
 
@@ -1924,7 +1946,7 @@ def display_stock_screener():
 
                 st.plotly_chart(fig, use_container_width=True)
 
-            except Exception as e:
+                       except Exception as e:
                 st.error(f"Failed to create distribution chart: {e}")
 
         # Performance Statistics
@@ -2057,6 +2079,10 @@ def main():
         # Navigation options based on available features
         nav_options = ["📊 Dashboard", "💼 Portfolio", "📈 Market Data", "⚠️ Risk Management", "📡 Trading Signals", "🏆 Performance"]
 
+        # Add Small Account option if available
+        if MODULES_LOADED["small_account"]:
+            nav_options.insert(1, "💰 Small Account")  # Insert after Dashboard
+
         if TRADING_ENGINE_LOADED:
             nav_options.insert(-1, "🤖 Live Trading Engine")  # Insert before Performance
 
@@ -2118,6 +2144,8 @@ def main():
             st.markdown("• VIX: 18.5 (-2.1%)")
             st.markdown("• 10Y Treasury: 4.35%")
 
+    elif page == "💰 Small Account":
+        display_small_account_dashboard()
     elif page == "💼 Portfolio":
         display_portfolio_overview()
     elif page == "📈 Market Data":
@@ -2212,7 +2240,3 @@ def main():
         st.markdown(f"• Mode: {status_text}")
         st.markdown(f"• Bot: {bot_status}")
         st.markdown(f"• Version: 2.1.0")
-
-
-if __name__ == "__main__":
-    main()
