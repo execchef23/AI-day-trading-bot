@@ -246,6 +246,17 @@ if "position_sizer" not in st.session_state and MODULES_LOADED["small_account"]:
 if "growth_calculator" not in st.session_state and MODULES_LOADED["small_account"]:
     st.session_state.growth_calculator = GrowthCalculator()
 
+# ✅ ADD: Initialize paper trading portfolio
+if "paper_portfolio" not in st.session_state:
+    st.session_state.paper_portfolio = {
+        "cash": INITIAL_CAPITAL,
+        "positions": {},
+        "trade_history": [],
+    }
+
+if "paper_trades" not in st.session_state:
+    st.session_state.paper_trades = []
+
 
 def create_demo_data():
     """Create demo data for deployment showcase"""
