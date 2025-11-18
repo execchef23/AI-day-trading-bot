@@ -180,7 +180,7 @@ class LiveTradingEngine:
                 from risk_management.portfolio_manager import PortfolioManager
 
                 self.portfolio_manager = PortfolioManager(
-                    initial_capital=self.config.initial_capital  # ✅ FIXED: was initial_cash
+                    initial_capital=self.config.initial_capital  # ✅ Already correct
                 )
                 logger.info("✅ Portfolio Manager initialized")
             except Exception as e:

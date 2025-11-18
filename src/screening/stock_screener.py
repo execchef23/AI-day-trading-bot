@@ -82,51 +82,60 @@ class StockGrowthScreener:
         logger.info(f"Scan complete: {len(results)} opportunities found")
         return results
 
-    def run_beginner_scan(self) -> Dict[str, ScreeningResult]:
+    def run_beginner_scan(self, max_price: float = 50.0) -> Dict[str, ScreeningResult]:
         """
-        Scan for BEGINNER-FRIENDLY stocks:
-        - Under $50 (affordable)
-        - High volume (liquid)
-        - Strong momentum (potential gains)
+        Scan for beginner-friendly affordable stocks under $50
+
+        Args:
+            max_price: Maximum stock price to include
+
+        Returns:
+            Dictionary of screening results
         """
+        logger.info("🔍 Running beginner-friendly stock scan")
 
-        logger.info(
-            f"🔍 Running beginner-friendly scan (${self.price_min}-${self.price_max})"
-        )
-
-        # ✅ Expanded universe of affordable stocks
-        affordable_universe = self._get_affordable_stocks()
+        # Affordable stock universe (under $50)
+        affordable_stocks = [
+            # Tech/Growth (Under $50)
+            "SOFI",
+            "PLTR",
+            "NIO",
+            "RIVN",
+            "LCID",
+            "PLUG",
+            # Established (Under $50)
+            "F",
+            "BAC",
+            "WFC",
+            "PFE",
+            "T",
+            "VZ",
+            "INTC",
+            # ETFs
+            "SQQQ",
+            "TQQQ",
+            "SPXL",
+            "UVXY",
+        ]
 
         results = {}
-        for symbol in affordable_universe:
+
+        for symbol in affordable_stocks:
             try:
-                # Get data
-                data = self._fetch_stock_data(symbol)
-                if data.empty:
-                    continue
+                # Use existing screening logic
+                result = self._screen_single_stock(symbol)
 
-                current_price = data["Close"].iloc[-1]
-
-                # ✅ FILTER: Only affordable stocks
-                if not (self.price_min <= current_price <= self.price_max):
-                    continue
-
-                # ✅ FILTER: Must have volume (liquidity)
-                avg_volume = data["Volume"].mean()
-                if avg_volume < self.volume_min:
-                    continue
-
-                # Score the stock
-                result = self._analyze_stock(symbol, data)
-
-                if result and result.score >= 0.5:  # Lower threshold for beginners
+                # Only include if under max price
+                if result and result.current_price <= max_price:
                     results[symbol] = result
 
             except Exception as e:
-                logger.debug(f"Could not scan {symbol}: {e}")
+                logger.debug(f"Could not screen {symbol}: {e}")
                 continue
 
-        logger.info(f"✅ Found {len(results)} affordable opportunities")
+        logger.info(
+            f"✅ Beginner scan complete: {len(results)} affordable stocks found"
+        )
         return results
 
     def _get_affordable_stocks(self) -> List[str]:

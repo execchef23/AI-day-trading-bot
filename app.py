@@ -2998,7 +2998,9 @@ def display_paper_trading_dashboard():
 
         # Display table without Action column
         display_df = df.drop("Action", axis=1)
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        st.dataframe(
+            display_df, width="stretch", hide_index=True
+        )  # ✅ CHANGED from use_container_width=True
 
         # Sell buttons
         st.markdown("**Close Positions:**")
