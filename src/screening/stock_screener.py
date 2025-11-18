@@ -69,15 +69,57 @@ class StockGrowthScreener:
         self.data_manager = data_manager
         logger.info("Screener components connected")
 
-    def run_full_scan(
-        self, symbols: Optional[List[str]] = None
-    ) -> Dict[str, ScreeningResult]:
-        """Run full screening scan"""
+    def run_full_scan(self) -> Dict[str, ScreeningResult]:
+        """Run full stock screening scan"""
         logger.info("Running full stock screening scan")
 
-        # Demo implementation - return empty results
-        # In production, this would analyze real market data
+        # ✅ ADD: Define stocks to scan if not configured
+        scan_symbols = getattr(self, "symbols", []) or [
+            # Large cap tech
+            "AAPL",
+            "MSFT",
+            "GOOGL",
+            "AMZN",
+            "TSLA",
+            "NVDA",
+            "META",
+            "NFLX",
+            # Growth stocks under $50
+            "SOFI",
+            "PLTR",
+            "NIO",
+            "RIVN",
+            "LCID",
+            "PLUG",
+            "F",
+            "BAC",
+            "T",
+            "INTC",
+            "AMD",
+            "PYPL",
+            "SQ",
+            "ROKU",
+            "COIN",
+            "HOOD",
+            # ETFs
+            "SPY",
+            "QQQ",
+            "IWM",
+        ]
+
         results = {}
+
+        for symbol in scan_symbols:
+            try:
+                # Screen each symbol (adjust method name to match your implementation)
+                result = self._screen_symbol(symbol)  # or self.screen_stock(symbol)
+
+                if result and result.score >= 0.5:  # Basic threshold
+                    results[symbol] = result
+
+            except Exception as e:
+                logger.debug(f"Could not screen {symbol}: {e}")
+                continue
 
         logger.info(f"Scan complete: {len(results)} opportunities found")
         return results
@@ -103,6 +145,13 @@ class StockGrowthScreener:
             "RIVN",
             "LCID",
             "PLUG",
+            "RIOT",
+            "MARA",
+            "WISH",
+            "DKNG",
+            "SKLZ",
+            "OPEN",
+            "RBLX",
             # Established (Under $50)
             "F",
             "BAC",
@@ -111,23 +160,39 @@ class StockGrowthScreener:
             "T",
             "VZ",
             "INTC",
-            # ETFs
-            "SQQQ",
-            "TQQQ",
-            "SPXL",
-            "UVXY",
+            "AAL",
+            "CCL",
+            "GE",
+            "GM",
+            "VALE",
+            "NOK",
+            "ERIC",
+            # Popular retail stocks
+            "AMC",
+            "BB",
+            "SNDL",
+            "TLRY",
+            "CGC",
+            "ACB",
+            # Penny stocks with potential
+            "GNUS",
+            "SENS",
+            "OCGN",
+            "WKHS",
+            "RIDE",
         ]
 
         results = {}
 
         for symbol in affordable_stocks:
             try:
-                # Use existing screening logic
-                result = self._screen_single_stock(symbol)
+                # Screen the symbol
+                result = self._screen_symbol(symbol)  # or self.screen_stock(symbol)
 
-                # Only include if under max price
-                if result and result.current_price <= max_price:
-                    results[symbol] = result
+                # Only include if under max price and we got valid results
+                if result and hasattr(result, "current_price"):
+                    if result.current_price <= max_price:
+                        results[symbol] = result
 
             except Exception as e:
                 logger.debug(f"Could not screen {symbol}: {e}")
@@ -174,7 +239,6 @@ class StockGrowthScreener:
             "TLRY",
             "SNDL",
             # Healthcare (Under $40)
-            "TELADOC",
             "TDOC",
             "MRNA",
             "BNTX",
@@ -202,39 +266,97 @@ class StockGrowthScreener:
             "MARA",
             "RIOT",
             "MSTR",
-            # ETFs (Fractional shares)
-            "SPY",
-            "QQQ",
-            "IWM",
-            "DIA",
-            "VOO",
         ]
 
-        # ✅ Add stocks from config
-        from config.config import TRADING_SYMBOLS
+        # ✅ Add stocks from config if available
+        try:
+            from config.config import TRADING_SYMBOLS
 
-        affordable_stocks.extend(TRADING_SYMBOLS)
+            affordable_stocks.extend(TRADING_SYMBOLS)
+        except:
+            pass
 
-        # Remove duplicates
-        return list(set(affordable_stocks))
+        return list(set(affordable_stocks))  # Remove duplicates
+
+    def _screen_symbol(self, symbol: str) -> Optional[ScreeningResult]:
+        """
+        Screen a single symbol and return results
+
+        Args:
+            symbol: Stock symbol to screen
+
+        Returns:
+            ScreeningResult if successful, None otherwise
+        """
+        try:
+            # Simulate screening (replace with real logic when ready)
+            import random
+
+            random.seed(hash(symbol))
+
+            # Generate realistic demo scores
+            score = random.uniform(0.4, 0.95)
+            current_price = random.uniform(self.price_min, self.price_max)
+
+            # Determine growth category
+            if score >= 0.8:
+                category = GrowthCategory.EXPLOSIVE_GROWTH
+            elif score >= 0.7:
+                category = GrowthCategory.HIGH_GROWTH
+            elif score >= 0.6:
+                category = GrowthCategory.MODERATE_GROWTH
+            else:
+                category = GrowthCategory.STABLE_GROWTH
+
+            # Calculate target price
+            target_multiplier = 1 + (score * 0.3)  # Up to 30% upside
+            target_price = current_price * target_multiplier
+
+            result = ScreeningResult(
+                symbol=symbol,
+                score=score,
+                growth_category=category,
+                current_price=current_price,
+                target_price=target_price,
+                technical_score=random.uniform(0.5, 0.9),
+                momentum_score=random.uniform(0.5, 0.9),
+                volume_score=random.uniform(0.5, 0.9),
+                ml_prediction=random.uniform(0.5, 0.9),
+                rsi=random.uniform(30, 70),
+                macd_signal="BULLISH" if score > 0.6 else "NEUTRAL",
+                volume_ratio=random.uniform(1.2, 3.5),
+                price_change_1w=random.uniform(-0.1, 0.15),
+                criteria_met=[ScreeningCriteria.MOMENTUM_BREAKOUT]
+                if score > 0.7
+                else [],
+                risk_factors=["High volatility"] if score > 0.8 else [],
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to screen {symbol}: {e}")
+            return None
 
     def get_screening_status(self) -> Dict:
         """Get current screening status"""
         return {
-            "is_active": False,
-            "last_scan": None,
-            "opportunities_found": 0,
-            "scan_count": 0,
+            "beginner_mode": self.beginner_mode,
+            "price_range": f"${self.price_min}-${self.price_max}",
+            "min_volume": self.volume_min,
+            "total_symbols": len(self._get_affordable_stocks()),
         }
 
 
-# Singleton instance
+# ✅ Singleton instance
 _screener_instance = None
 
 
 def get_screener() -> StockGrowthScreener:
-    """Get or create screener instance"""
+    """Get or create the global screener instance"""
     global _screener_instance
+
     if _screener_instance is None:
         _screener_instance = StockGrowthScreener()
+
     return _screener_instance
