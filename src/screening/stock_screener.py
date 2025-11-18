@@ -73,9 +73,7 @@ class StockGrowthScreener:
         """Run full stock screening scan"""
         logger.info("Running full stock screening scan")
 
-        # Define stocks to scan
         scan_symbols = [
-            # Large cap tech
             "AAPL",
             "MSFT",
             "GOOGL",
@@ -84,7 +82,6 @@ class StockGrowthScreener:
             "NVDA",
             "META",
             "NFLX",
-            # Growth stocks under $50
             "SOFI",
             "PLTR",
             "NIO",
@@ -101,7 +98,6 @@ class StockGrowthScreener:
             "ROKU",
             "COIN",
             "HOOD",
-            # ETFs
             "SPY",
             "QQQ",
             "IWM",
@@ -113,11 +109,12 @@ class StockGrowthScreener:
             try:
                 result = self._screen_symbol(symbol)
 
-                if result and result.score >= 0.5:
+                # ✅ CHANGED: Lower threshold to 0.0 to accept everything
+                if result and result.score >= 0.0:
                     results[symbol] = result
 
             except Exception as e:
-                logger.debug(f"Could not screen {symbol}: {e}")
+                logger.error(f"Error screening {symbol}: {e}")
                 continue
 
         logger.info(f"Scan complete: {len(results)} opportunities found")
