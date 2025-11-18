@@ -58,7 +58,7 @@ class StockGrowthScreener:
         self.data_manager = None
         logger.info("Stock Growth Screener initialized")
 
-        # ✅ ADD: Beginner-friendly settings
+        # Beginner-friendly settings
         self.beginner_mode = True
         self.price_max = 50.0
         self.price_min = 2.0
@@ -73,8 +73,8 @@ class StockGrowthScreener:
         """Run full stock screening scan"""
         logger.info("Running full stock screening scan")
 
-        # ✅ ADD: Define stocks to scan if not configured
-        scan_symbols = getattr(self, "symbols", []) or [
+        # Define stocks to scan
+        scan_symbols = [
             # Large cap tech
             "AAPL",
             "MSFT",
@@ -111,10 +111,9 @@ class StockGrowthScreener:
 
         for symbol in scan_symbols:
             try:
-                # Screen each symbol (adjust method name to match your implementation)
-                result = self._screen_symbol(symbol)  # or self.screen_stock(symbol)
+                result = self._screen_symbol(symbol)
 
-                if result and result.score >= 0.5:  # Basic threshold
+                if result and result.score >= 0.5:
                     results[symbol] = result
 
             except Exception as e:
@@ -127,16 +126,10 @@ class StockGrowthScreener:
     def run_beginner_scan(self, max_price: float = 50.0) -> Dict[str, ScreeningResult]:
         """
         Scan for beginner-friendly affordable stocks under $50
-
-        Args:
-            max_price: Maximum stock price to include
-
-        Returns:
-            Dictionary of screening results
         """
         logger.info("🔍 Running beginner-friendly stock scan")
 
-        # Affordable stock universe (under $50)
+        # Affordable stock universe
         affordable_stocks = [
             # Tech/Growth (Under $50)
             "SOFI",
@@ -186,10 +179,8 @@ class StockGrowthScreener:
 
         for symbol in affordable_stocks:
             try:
-                # Screen the symbol
-                result = self._screen_symbol(symbol)  # or self.screen_stock(symbol)
+                result = self._screen_symbol(symbol)
 
-                # Only include if under max price and we got valid results
                 if result and hasattr(result, "current_price"):
                     if result.current_price <= max_price:
                         results[symbol] = result
@@ -203,91 +194,8 @@ class StockGrowthScreener:
         )
         return results
 
-    def _get_affordable_stocks(self) -> List[str]:
-        """
-        Get list of affordable, liquid stocks for beginners
-        """
-
-        # ✅ Popular affordable stocks (constantly updated)
-        affordable_stocks = [
-            # Fintech & Banking (Under $20)
-            "SOFI",
-            "NU",
-            "UPST",
-            "AFRM",
-            "SQ",
-            "HOOD",
-            # EV & Clean Energy (Under $30)
-            "NIO",
-            "LCID",
-            "RIVN",
-            "FSR",
-            "BLNK",
-            "CHPT",
-            # Tech & Software (Under $50)
-            "PLTR",
-            "SNAP",
-            "PINS",
-            "U",
-            "DDOG",
-            "NET",
-            # Retail & Consumer (Under $25)
-            "WISH",
-            "BBBY",
-            "GME",
-            "AMC",
-            "TLRY",
-            "SNDL",
-            # Healthcare (Under $40)
-            "TDOC",
-            "MRNA",
-            "BNTX",
-            # Telecom (Under $20)
-            "T",
-            "VZ",
-            "TMUS",
-            # Industrials (Under $30)
-            "F",
-            "GM",
-            "AAL",
-            "UAL",
-            "CCL",
-            # Banks (Under $50)
-            "BAC",
-            "WFC",
-            "C",
-            "JPM",
-            # REITs (Under $30)
-            "O",
-            "AGNC",
-            "NLY",
-            # Crypto Exposure (Variable)
-            "COIN",
-            "MARA",
-            "RIOT",
-            "MSTR",
-        ]
-
-        # ✅ Add stocks from config if available
-        try:
-            from config.config import TRADING_SYMBOLS
-
-            affordable_stocks.extend(TRADING_SYMBOLS)
-        except:
-            pass
-
-        return list(set(affordable_stocks))  # Remove duplicates
-
     def _screen_symbol(self, symbol: str) -> Optional[ScreeningResult]:
-        """
-        Screen a single symbol and return results
-
-        Args:
-            symbol: Stock symbol to screen
-
-        Returns:
-            ScreeningResult if successful, None otherwise
-        """
+        """Screen a single symbol and return results"""
         try:
             # Simulate screening (replace with real logic when ready)
             import random
@@ -344,11 +252,11 @@ class StockGrowthScreener:
             "beginner_mode": self.beginner_mode,
             "price_range": f"${self.price_min}-${self.price_max}",
             "min_volume": self.volume_min,
-            "total_symbols": len(self._get_affordable_stocks()),
+            "total_symbols": 50,
         }
 
 
-# ✅ Singleton instance
+# Singleton instance
 _screener_instance = None
 
 
